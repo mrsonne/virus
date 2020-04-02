@@ -1,0 +1,14 @@
+.env
+env
+venv
+__pycache__
+
+*.pyc
+*.sqlite
+*.coverage
+.vscode
+.bash_history
+.DS_Store
+tmp
+misc
+.ipynb_checkpoints*
