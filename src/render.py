@@ -10,12 +10,13 @@ def plot(times, sick, hospitalized,
     max_hospitalized = np.max(hospitalized)
     max_ventilator = np.max(ventilator)
     max_recovered = np.max(recovered)
+    max_sick = np.max(sick)
     total_deaths = dead[-1]
 
     fig, ax = plt.subplots(figsize=(15, 8))
 
     ax.plot(times, sick, 'b-', linewidth=2,
-            label='Sick')
+            label='Sick (max=={:5.1e})'.format(max_sick))')
     ax.plot(times, hospitalized, 'b--', linewidth=2,
             label='Hospitalized (max={:5.1e})'.format(max_hospitalized))
     ax.plot(times, ventilator, 'b:', linewidth=2,
