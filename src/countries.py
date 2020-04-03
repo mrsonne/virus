@@ -12,7 +12,7 @@ def _get_denmark():
 COUNTRYFUN_FOR_COUNTRYID = {'denmark': _get_denmark}
 
 
-def run_country(virus_id, country_id, encounters_per_day=None):
+def run_country(virus_id, country_id, encounters_per_day=None, show_recovered=False):
     """
     Danish data in Table 2 (~1000 deads per year)
     https://www.ssi.dk/sygdomme-beredskab-og-forskning/sygdomsovervaagning/i/influenzasaesonen---opgoerelse-over-sygdomsforekomst-2018-19
@@ -100,4 +100,6 @@ def run_country(virus_id, country_id, encounters_per_day=None):
                          tspan, 
                          y0, ventilator_capacity)
 
-    render.plot(times, sick, hospitalized, ventilator, recovered, dead)
+    title = '{} ($E$={})'.format(virus_id, encounters_per_day)
+    render.plot(times, sick, hospitalized, ventilator, recovered, dead,
+                show_recovered=show_recovered, title=title)
