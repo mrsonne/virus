@@ -16,7 +16,7 @@ def plot(times, sick, hospitalized,
     fig, ax = plt.subplots(figsize=(15, 8))
 
     ax.plot(times, sick, 'b-', linewidth=2,
-            label='Sick (max=={:5.1e})'.format(max_sick))
+            label='Sick (max={:5.1e})'.format(max_sick))
     ax.plot(times, hospitalized, 'b--', linewidth=2,
             label='Hospitalized (max={:5.1e})'.format(max_hospitalized))
     ax.plot(times, ventilator, 'b:', linewidth=2,
