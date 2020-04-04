@@ -12,7 +12,8 @@ def _get_denmark():
 COUNTRYFUN_FOR_COUNTRYID = {'denmark': _get_denmark}
 
 
-def run_country(virus_id, country_id, encounters_per_day=None, show_recovered=False):
+def run_country(virus_id, country_id, encounters_per_day=None,
+                show_recovered=False, tspan=None):
     """
     Danish data in Table 2 (~1000 deads per year)
     https://www.ssi.dk/sygdomme-beredskab-og-forskning/sygdomsovervaagning/i/influenzasaesonen---opgoerelse-over-sygdomsforekomst-2018-19
@@ -20,7 +21,7 @@ def run_country(virus_id, country_id, encounters_per_day=None, show_recovered=Fa
 
 
     try:
-        (tspan,
+        (_tspan,
         p_transmision,
         p_hospitalized_to_ventilator,
         p_sick_to_hospitalized,
@@ -33,6 +34,8 @@ def run_country(virus_id, country_id, encounters_per_day=None, show_recovered=Fa
         raise KeyError(err_str.format(virus_id,
                                       ', '.join(list(PARSFUN_FOR_VIRUSID.keys()))))
 
+    if not tspan:
+        tspan = _tspan
     # Always 80 % loose infection after infection duration
     infections_at_tau = 0.2
     kIminus = -np.log(infections_at_tau)/tau
