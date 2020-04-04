@@ -48,7 +48,7 @@ def exceed_ventilator_capacity(t, y, kIminus,
     return ventilator_capacity - ventilators_required
 
 
-def get_kIplus(encounters_per_day, p_transmision, tau):
+def get_kIplus(encounters_per_day, p_transmision):
     """
     Equivalent for sick to meet healthy and vice versa
     p_S = 0.5 (p_H = 0.5)
@@ -56,7 +56,7 @@ def get_kIplus(encounters_per_day, p_transmision, tau):
     S   0.25      0.25
     H   0.25      0.25
     """
-    return 2*encounters_per_day*p_transmision*tau
+    return 2*encounters_per_day*p_transmision
 
 
 def extract_time_series(sol, ytot, p_sick_to_hospitalized, p_hospitalized_to_ventilator, ventilator_capacity):
@@ -79,7 +79,7 @@ def solve(encounters_per_day,
           tspan, y0, ventilator_capacity,
           n_time_eval=1000):
 
-    kIplus = get_kIplus(encounters_per_day, p_transmision, tau)
+    kIplus = get_kIplus(encounters_per_day, p_transmision)
 
     ytot = np.sum( y0 )
 

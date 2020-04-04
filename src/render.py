@@ -44,7 +44,7 @@ def plot(times, sick, hospitalized,
 
 #     ax.legend(loc='upper left')
     font_size = 16
-    ax.set_xlabel('Time (τ)', fontsize=font_size)
+    ax.set_xlabel('Time (day)', fontsize=font_size)
     ax.set_ylabel('Individuals', fontsize=font_size)
     ax.legend(fontsize=font_size) 
     ax.tick_params(axis='x', labelsize=font_size)

@@ -17,9 +17,6 @@ def run_country(virus_id, country_id, encounters_per_day=None, show_recovered=Fa
     Danish data in Table 2 (~1000 deads per year)
     https://www.ssi.dk/sygdomme-beredskab-og-forskning/sygdomsovervaagning/i/influenzasaesonen---opgoerelse-over-sygdomsforekomst-2018-19
     """
-    # Always 80 % loose infection after infection duration
-    infections_at_tau = 0.2
-    kIminus = -np.log(infections_at_tau)
 
 
     try:
@@ -36,8 +33,12 @@ def run_country(virus_id, country_id, encounters_per_day=None, show_recovered=Fa
         raise KeyError(err_str.format(virus_id,
                                       ', '.join(list(PARSFUN_FOR_VIRUSID.keys()))))
 
+    # Always 80 % loose infection after infection duration
+    infections_at_tau = 0.2
+    kIminus = -np.log(infections_at_tau)/tau
+
     if encounters_per_day is None:
-        _encounters_per_day = kIminus/get_kIplus(1., p_transmision, tau) # constant sick count
+        _encounters_per_day = kIminus/get_kIplus(1., p_transmision) # constant sick count
     else:
         _encounters_per_day = encounters_per_day
 
@@ -51,7 +52,7 @@ def run_country(virus_id, country_id, encounters_per_day=None, show_recovered=Fa
 
     n_sick_init = 5
     
-    kIplus = get_kIplus(_encounters_per_day, p_transmision, tau)
+    kIplus = get_kIplus(_encounters_per_day, p_transmision)
 
     fstr = '{:20} {:7} {}'
     ostrs = []
@@ -62,8 +63,8 @@ def run_country(virus_id, country_id, encounters_per_day=None, show_recovered=Fa
     ostrs.append(fstr.format('Infection time τ', tau, 'day'))
 
     fstr = '{:20} {:7.2f} {}'
-    ostrs.append(fstr.format('k_I+', kIplus, '/τ'))
-    ostrs.append(fstr.format('k_I-', kIminus, '/τ'))
+    ostrs.append(fstr.format('k_I+', kIplus, '/day'))
+    ostrs.append(fstr.format('k_I-', kIminus, '/day'))
     ostrs.append(fstr.format('k_I+ / k_I-', kIplus / kIminus, ''))
 
     fstr = '{:20} {:7.1f} %'

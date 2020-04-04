@@ -1,7 +1,7 @@
 def get_covid19_parameters():
     # Assumes same hospitalization rate as flu. Data is not reliable for COVID-19 yet. Parameter is not critical
     _, p_transmision, _, p_sick_to_hospitalized, p_sick_to_dead, _, _ = get_flu_parameters()
-    tspan = [0, 20]
+    tspan = [0, 200]
     p_sick_to_dead *= 6. # relative to flu
     # p_sick_to_dead_no_ventilator =  p_sick_to_dead # For testing: no effect of exceeding ventilator capacity
 
@@ -16,7 +16,7 @@ def get_covid19_parameters():
 def get_flu_parameters():
     # Get flu data and use as baseline
     p_sick_to_hospitalized, p_sick_to_dead = get_us_flu_data() 
-    tspan = [0, 100]
+    tspan = [0, 700]
     p_sick_to_dead_no_ventilator = 0. # TODO: of the patients requirering ventilator?
     p_transmision = 0.0026 # adjusted to fit flu data
     p_hospitalized_to_ventilator = 0. # unknown
