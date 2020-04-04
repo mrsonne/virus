@@ -123,9 +123,9 @@ def map_country(virus_id, country_id, encounters_per_day=None,
         p_t,
         p_v,
         p_h,
-        p_d,
+        p_d_nom,
         p_dnv,
-        tau
+        tau_nom
         ) = PARSFUN_FOR_VIRUSID[virus_id]()
     except KeyError:
         err_str = 'Unknown virus ID "{}". Available IDs: {}'
@@ -180,5 +180,5 @@ def map_country(virus_id, country_id, encounters_per_day=None,
         taus.append(tau)
         ps_d.append(p_d)
 
-    title = '{} ($E$={})'.format(virus_id, encounters_per_day)
-    render.cplot(np.array(ps_d)*100, np.array(taus), deads, title='Deads')
+    title = 'Deads ({}, $E$={})'.format(virus_id, encounters_per_day)
+    render.cplot(np.array(ps_d)*100, np.array(taus), deads, p_d_nom*100, tau_nom, title=title)

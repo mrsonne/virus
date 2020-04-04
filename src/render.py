@@ -54,13 +54,14 @@ def plot(times, sick, hospitalized,
     plt.show()
 
 
-def cplot(x, y, z, title=''):
+def cplot(x, y, z, p_d_nom, tau_nom, title=''):
     xi, yi = np.linspace(x.min(), x.max(), 100), np.linspace(y.min(), y.max(), 100)
     grid_x, grid_y = np.meshgrid(xi, yi)
     grid_z = griddata((x, y), z, (grid_x, grid_y), method='linear')
 
     fig, ax = plt.subplots(figsize=(8, 8))
     cs = ax.contour(grid_x, grid_y, grid_z, colors='black')
+    ax.scatter(p_d_nom, tau_nom, s=50, c='none', edgecolors='black')
     font_size = 16
     ax.clabel(cs, inline=1, fontsize=font_size, fmt='%1.0f')
     ax.set_xlabel('$p_d$ (%)', fontsize=font_size)
