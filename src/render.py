@@ -4,7 +4,7 @@ from scipy.interpolate import griddata
 
 def plot(times, sick, hospitalized,
          ventilator, recovered, dead,
-         vimpgrid_xmpgrid_ympgrid_zntilator_capacity=None,
+         ventilator_capacity=None,
          show_recovered=False,
          title=''):
 
