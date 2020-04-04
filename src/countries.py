@@ -1,3 +1,4 @@
+import itertools
 import numpy as np
 from .data import PARSFUN_FOR_VIRUSID
 from .solver import solve, get_kIplus
@@ -107,3 +108,77 @@ def run_country(virus_id, country_id, encounters_per_day=None,
     title = '{} ($E$={})'.format(virus_id, encounters_per_day)
     render.plot(times, sick, hospitalized, ventilator, recovered, dead,
                 show_recovered=show_recovered, title=title)
+
+
+
+
+def map_country(virus_id, country_id, encounters_per_day=None,
+                tspan=None):
+    """
+    """
+
+    # Nominal parameters
+    try:
+        (_tspan,
+        p_t,
+        p_v,
+        p_h,
+        p_d,
+        p_dnv,
+        tau
+        ) = PARSFUN_FOR_VIRUSID[virus_id]()
+    except KeyError:
+        err_str = 'Unknown virus ID "{}". Available IDs: {}'
+        raise KeyError(err_str.format(virus_id,
+                                      ', '.join(list(PARSFUN_FOR_VIRUSID.keys()))))
+
+    if not tspan:
+        tspan = _tspan
+
+    # Always 80 % loose infection after infection duration
+    infections_at_tau = 0.2
+
+
+    try:
+        population, ventilator_capacity = COUNTRYFUN_FOR_COUNTRYID[country_id]()
+    except KeyError:
+        err_str = 'Unknown country ID "{}". Available IDs: {}'
+        raise KeyError(err_str.format(country_id,
+                                      ', '.join(list(COUNTRYFUN_FOR_COUNTRYID.keys()))))
+
+
+    n_sick_init = 5
+    
+    kIplus = get_kIplus(encounters_per_day, p_t)
+
+    y0 = [population, n_sick_init, 0, 0]
+
+    deads = []
+    nsteps = 25
+    _ps_d = np.linspace(0.001, 0.01, nsteps)
+    _taus = np.linspace(6, 21, nsteps)
+    taus = []
+    ps_d = []
+    for i, (p_d, tau) in enumerate(itertools.product(_ps_d, _taus)):
+        kIminus = -np.log(infections_at_tau)/tau
+        (_, 
+        _,
+        _,
+        _,
+        _,
+        dead) = solve(encounters_per_day,
+                      p_t,
+                      tau,
+                      kIminus,
+                      p_d,
+                      p_dnv,
+                      p_h,
+                      p_v,
+                      tspan, 
+                      y0, ventilator_capacity)
+        deads.append(dead[-1])
+        taus.append(tau)
+        ps_d.append(p_d)
+
+    title = '{} ($E$={})'.format(virus_id, encounters_per_day)
+    render.cplot(np.array(ps_d)*100, np.array(taus), deads, title='Deads')
