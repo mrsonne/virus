@@ -160,7 +160,7 @@ def map_country(virus_id, country_id, encounters_per_day=None,
     taus = []
     ps_d = []
     for i, (p_d, tau) in enumerate(itertools.product(_ps_d, _taus)):
-        kIminus = -np.log(infections_at_tau)/tau
+        kIminus = np.log(infections_at_tau)/tau
         (_, 
         _,
         _,
