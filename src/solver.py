@@ -29,11 +29,11 @@ def dydt(t, y, kIminus, kIplus, p_sick_to_recovered, p_sick_to_dead, p_sick_to_d
     dhealthy_dt = -dIplus_dt
 
     dIminus_dt = kIminus*( y[sick_idx] - ventilators_missing )
-    ddead_dt = p_sick_to_dead * dIminus_dt
-    ddead_dt += p_sick_to_dead_no_ventilator * kIminus * ventilators_missing
-    drecovered_dt = dIminus_dt - ddead_dt
+    ddead_dt = -p_sick_to_dead * dIminus_dt
+    ddead_dt -= p_sick_to_dead_no_ventilator * kIminus * ventilators_missing
+    drecovered_dt = -dIminus_dt - ddead_dt
     
-    dsick_dt = dIplus_dt - dIminus_dt
+    dsick_dt = dIplus_dt + dIminus_dt
     return [dhealthy_dt, dsick_dt, drecovered_dt, ddead_dt]
 
 

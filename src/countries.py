@@ -39,7 +39,7 @@ def run_country(virus_id, country_id, encounters_per_day=None,
         tspan = _tspan
     # Always 80 % loose infection after infection duration
     infections_at_tau = 0.2
-    kIminus = -np.log(infections_at_tau)/tau
+    kIminus = np.log(infections_at_tau)/tau
 
     if encounters_per_day is None:
         _encounters_per_day = kIminus/get_kIplus(1., p_transmision) # constant sick count
@@ -69,7 +69,7 @@ def run_country(virus_id, country_id, encounters_per_day=None,
     fstr = '{:20} {:7.2f} {}'
     ostrs.append(fstr.format('k_I+', kIplus, '/day'))
     ostrs.append(fstr.format('k_I-', kIminus, '/day'))
-    ostrs.append(fstr.format('k_I+ / k_I-', kIplus / kIminus, ''))
+    ostrs.append(fstr.format('-k_I+ / k_I-', -kIplus / kIminus, ''))
 
     fstr = '{:20} {:7.1f} %'
     ostrs.append(fstr.format('Infections at τ (%)', infections_at_tau*100))
