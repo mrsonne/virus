@@ -70,3 +70,34 @@ def cplot(x, y, z, p_d_nom, tau_nom, title=''):
     ax.tick_params(axis='y', labelsize=font_size)
     plt.title(title, fontsize=font_size*1.25)
     plt.show()
+
+
+def ua_plot(xvals, yvals, ypercentiles, xnames, yname, percentiel_name, n_bins=25):
+    nattrs = xvals.shape[0]
+    fig = plt.figure(figsize=(14, 7), constrained_layout=True)
+    gs = fig.add_gridspec(ncols=3, nrows=2)
+    axs = []
+    for row in range(2):
+        axs.append(fig.add_subplot(gs[row, 0]))
+
+    ax_big = fig.add_subplot(gs[:, 1:])
+    font_size = 16
+
+    for ax, _xvals, name in zip(axs, xvals, xnames):
+       ax.hist(_xvals, bins=n_bins, density=True, align='mid')
+       ax.set_xlabel(name, fontsize=font_size)
+       ax.set_ylabel('Density', fontsize=font_size)
+       ax.tick_params(axis='x', labelsize=font_size)
+       ax.tick_params(axis='y', labelsize=font_size)
+
+
+    ax_big.axvspan(*ypercentiles, alpha=0.3, color='seagreen',
+                   label='{} % CI'.format(percentiel_name))
+    ax_big.hist(yvals, bins=n_bins, density=True, align='mid')
+    ax_big.set_xlabel(yname, fontsize=font_size)
+    ax_big.set_ylabel('Density', fontsize=font_size)
+    ax_big.legend(fontsize=font_size) 
+    ax_big.tick_params(axis='x', labelsize=font_size)
+    ax_big.tick_params(axis='y', labelsize=font_size)
+
+    plt.show()

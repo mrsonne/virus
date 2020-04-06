@@ -168,10 +168,8 @@ def map_country(virus_id, country_id, encounters_per_day=None,
                                       ', '.join(list(COUNTRYFUN_FOR_COUNTRYID.keys()))))
 
 
-    n_sick_init = 5
-    
+    n_sick_init = 5    
     kIplus = get_kIplus(encounters_per_day, p_t)
-
     y0 = [population, n_sick_init, 0, 0]
 
     deads = []
@@ -205,26 +203,93 @@ def map_country(virus_id, country_id, encounters_per_day=None,
     render.cplot(np.array(ps_d)*100, np.array(taus), deads, p_d_nom*100, tau_nom, title=title)
 
 
-def ua(virus_id, country_id, encounters_per_day):
+def ua(virus_id, country_id,
+       encounters_per_day,
+       tspan=None,
+       infections_at_tau=0.2):
     """Uncertainty analysis
     """
 
-    header = ('', 'Mean', 'Std', 'Unit')
-    rows = [('τ', 16, 2, 'day'),
-            ('E', 50, 5, ''),
-            ('p_t', 0.26, 0.05, '%'),
-            ('p_d', 0.7, 0.15, '%'),
-            ('p_h', 1.3, 0.3, '%'),
-            ('p_v', 20, 2, '%')
-           ]
-    table = table_str(header, rows, 'Primary parameters')
-    print(table)
-    print()
+    # header = ('', 'Mean', 'Std', 'Unit')
+    # rows = [('τ', 16, 2, 'day'),
+    #         ('E', 50, 5, ''),
+    #         ('p_t', 0.26, 0.05, '%'),
+    #         ('p_d', 0.7, 0.15, '%'),
+    #         ('p_h', 1.3, 0.3, '%'),
+    #         ('p_v', 20, 2, '%')
+    #        ]
+    # table = table_str(header, rows, 'Primary parameters')
+    # print(table)
+    # print()
 
 
-    header = ('', 'Mean', 'Std', 'Unit')
-    rows = [('k_I+', 16, 2, 'day\u207B\u00B9'),
-            ('k_I-', 16, 2, 'day\u207B\u00B9')
-           ]
-    table = table_str(header, rows, 'Derived parameters')
-    print(table)
+
+    # header = ('', 'Mean', 'Std', 'Unit')
+    # rows = [('k_I+', 16, 2, 'day\u207B\u00B9'),
+    #         ('k_I-', 16, 2, 'day\u207B\u00B9')
+    #        ]
+    # table = table_str(header, rows, 'Derived parameters')
+    # print(table)
+
+    # Nominal parameters
+    try:
+        (_tspan,
+        p_t,
+        p_v,
+        p_h,
+        p_d_nom,
+        p_dnv,
+        tau_nom
+        ) = PARSFUN_FOR_VIRUSID[virus_id]()
+    except KeyError:
+        err_str = 'Unknown virus ID "{}". Available IDs: {}'
+        raise KeyError(err_str.format(virus_id,
+                                      ', '.join(list(PARSFUN_FOR_VIRUSID.keys()))))
+
+    if not tspan:
+        tspan = _tspan
+
+
+    try:
+        population, ventilator_capacity = COUNTRYFUN_FOR_COUNTRYID[country_id]()
+    except KeyError:
+        err_str = 'Unknown country ID "{}". Available IDs: {}'
+        raise KeyError(err_str.format(country_id,
+                                      ', '.join(list(COUNTRYFUN_FOR_COUNTRYID.keys()))))
+
+    n_sick_init = 5    
+    kIplus = get_kIplus(encounters_per_day, p_t)
+    y0 = [population, n_sick_init, 0, 0]
+
+    nsamples = 100
+    xnames = 'p_d (%)', 'τ (days)'
+    mean = [0.007 , 14.]
+    cov = [[0.000004, 0.],[0., 1.]]
+    xvals = np.random.multivariate_normal(mean, cov, nsamples).T
+
+    deads = []
+    for p_d, tau in xvals.T:
+        kIminus = np.log(infections_at_tau)/tau
+        (_, 
+        _,
+        _,
+        _,
+        _,
+        dead) = solve(encounters_per_day,
+                      p_t,
+                      tau,
+                      kIminus,
+                      p_d,
+                      p_dnv,
+                      p_h,
+                      p_v,
+                      tspan, 
+                      y0, ventilator_capacity)
+        deads.append(dead[-1])
+
+    yname = 'Deads'
+    # Convert p_d to percent
+    xvals[0, :] *= 100
+    percentiles = np.percentile(deads, q=(5, 95))
+    print(percentiles)
+    render.ua_plot(xvals, deads, percentiles, xnames, yname, percentiel_name='90')
