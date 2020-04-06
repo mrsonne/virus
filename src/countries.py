@@ -263,8 +263,8 @@ def ua(virus_id, country_id,
     y0 = [population, n_sick_init, 0, 0]
 
     xnames = r'$p_{\rm{d}}$ (%)', r'$\tau$ (days)'
-    mean = [0.007 , tau_nom]
-    cov = [[0.000003, 0.],[0., 4.]]
+    mean = [0.0075 , tau_nom]
+    cov = [[0.000001, 0.],[0., 4.]]
     xvals = np.random.multivariate_normal(mean, cov, nsamples).T
 
     deads = []
@@ -291,5 +291,6 @@ def ua(virus_id, country_id,
     # Convert p_d to percent
     xvals[0, :] *= 100
     percentiles = np.percentile(deads, q=(5, 50, 95))
-    print(percentiles)
-    render.ua_plot(xvals, deads, percentiles, xnames, yname, percentiel_name='90')
+    title = '{}, $E$={}'.format(virus_id, encounters_per_day)
+    render.ua_plot(xvals, deads, percentiles, xnames, yname,
+                   percentiel_name='90', title=title)

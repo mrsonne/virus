@@ -72,16 +72,16 @@ def cplot(x, y, z, p_d_nom, tau_nom, title=''):
     plt.show()
 
 
-def ua_plot(xvals, yvals, ypercentiles, xnames, yname, percentiel_name, n_bins=25):
+def ua_plot(xvals, yvals, ypercentiles, xnames, yname, percentiel_name, n_bins=25, title=''):
+    font_size = 16
     nattrs = xvals.shape[0]
     fig = plt.figure(figsize=(14, 7), constrained_layout=True)
-    gs = fig.add_gridspec(ncols=3, nrows=2)
+    gs = fig.add_gridspec(ncols=3, nrows=nattrs)
     axs = []
     for row in range(2):
         axs.append(fig.add_subplot(gs[row, 0]))
 
     ax_big = fig.add_subplot(gs[:, 1:])
-    font_size = 16
 
     for ax, _xvals, name in zip(axs, xvals, xnames):
        ax.hist(_xvals, bins=n_bins, density=True, align='mid')
