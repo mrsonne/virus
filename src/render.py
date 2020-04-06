@@ -91,9 +91,11 @@ def ua_plot(xvals, yvals, ypercentiles, xnames, yname, percentiel_name, n_bins=2
        ax.tick_params(axis='y', labelsize=font_size)
 
 
-    ax_big.axvspan(*ypercentiles, alpha=0.3, color='seagreen',
-                   label='{} % CI'.format(percentiel_name))
+    ax_big.axvspan(ypercentiles[0], ypercentiles[-1], alpha=0.3, color='seagreen',
+                   label='{} % CI ({:5.1e} to {:5.1e})'.format(percentiel_name, ypercentiles[0], ypercentiles[-1]))
     ax_big.hist(yvals, bins=n_bins, density=True, align='mid')
+    ax_big.axvline(ypercentiles[1], color='black',
+                   label='Median ({:5.1e})'.format(ypercentiles[1]))
     ax_big.set_xlabel(yname, fontsize=font_size)
     ax_big.set_ylabel('Density', fontsize=font_size)
     ax_big.legend(fontsize=font_size) 

@@ -205,6 +205,7 @@ def map_country(virus_id, country_id, encounters_per_day=None,
 
 def ua(virus_id, country_id,
        encounters_per_day,
+       nsamples=1000,
        tspan=None,
        infections_at_tau=0.2):
     """Uncertainty analysis
@@ -261,10 +262,9 @@ def ua(virus_id, country_id,
     kIplus = get_kIplus(encounters_per_day, p_t)
     y0 = [population, n_sick_init, 0, 0]
 
-    nsamples = 100
-    xnames = 'p_d (%)', 'τ (days)'
-    mean = [0.007 , 14.]
-    cov = [[0.000004, 0.],[0., 1.]]
+    xnames = r'$p_{\rm{d}}$ (%)', r'$\tau$ (days)'
+    mean = [0.007 , tau_nom]
+    cov = [[0.000003, 0.],[0., 4.]]
     xvals = np.random.multivariate_normal(mean, cov, nsamples).T
 
     deads = []
@@ -290,6 +290,6 @@ def ua(virus_id, country_id,
     yname = 'Deads'
     # Convert p_d to percent
     xvals[0, :] *= 100
-    percentiles = np.percentile(deads, q=(5, 95))
+    percentiles = np.percentile(deads, q=(5, 50, 95))
     print(percentiles)
     render.ua_plot(xvals, deads, percentiles, xnames, yname, percentiel_name='90')

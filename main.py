@@ -22,4 +22,5 @@ encounters_per_day = 50 # adjusted to fit flu data (adjusted with transmission p
 # countries.map_country('covid19', 'denmark', encounters_per_day, tspan=[0, 400])
 # countries.map_country('flu', 'denmark', encounters_per_day, tspan=[0, 400])
 
-countries.ua('covid19', 'denmark', encounters_per_day, tspan=[0, 400])
+countries.ua('covid19', 'denmark', encounters_per_day, 
+              nsamples=100, tspan=[0, 400])
