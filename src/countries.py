@@ -5,6 +5,10 @@ from .solver import solve, get_kIplus
 from . import render
 
 def _get_denmark():
+    """
+    Danish flu data in Table 2 (~1000 deads per year)
+    https://www.ssi.dk/sygdomme-beredskab-og-forskning/sygdomsovervaagning/i/influenzasaesonen---opgoerelse-over-sygdomsforekomst-2018-19
+    """
     population = int(5e6)
     ventilator_capacity = 1000
     return population, ventilator_capacity
@@ -13,13 +17,30 @@ def _get_denmark():
 COUNTRYFUN_FOR_COUNTRYID = {'denmark': _get_denmark}
 
 
+def table_str(header, rows, title):
+    fstrs = '{:<10} {:^10} {:^10} {:^5}'
+    fstrn = '{:<10} {:^10} {:^10} {:^5}'
+
+    lines = [fstrn.format(*row) for row in rows]
+    lines.insert(0, fstrs.format(*header))
+
+
+    sepchr = '-'
+    length = max([len(line) for line in lines])
+    sep = length*sepchr
+    lines.insert(0, sep)
+    lines.insert(2, sep)
+    lines.append(sep)
+    lines.insert(0, title)
+    return '\n'.join(lines)
+
+
+
 def run_country(virus_id, country_id, encounters_per_day=None,
                 show_recovered=False, tspan=None):
     """
-    Danish data in Table 2 (~1000 deads per year)
-    https://www.ssi.dk/sygdomme-beredskab-og-forskning/sygdomsovervaagning/i/influenzasaesonen---opgoerelse-over-sygdomsforekomst-2018-19
+    Virus simulation
     """
-
 
     try:
         (_tspan,
@@ -114,7 +135,7 @@ def run_country(virus_id, country_id, encounters_per_day=None,
 
 def map_country(virus_id, country_id, encounters_per_day=None,
                 tspan=None):
-    """
+    """Sensitivity plot
     """
 
     # Nominal parameters
@@ -182,3 +203,28 @@ def map_country(virus_id, country_id, encounters_per_day=None,
 
     title = 'Deads ({}, $E$={})'.format(virus_id, encounters_per_day)
     render.cplot(np.array(ps_d)*100, np.array(taus), deads, p_d_nom*100, tau_nom, title=title)
+
+
+def ua(virus_id, country_id, encounters_per_day):
+    """Uncertainty analysis
+    """
+
+    header = ('', 'Mean', 'Std', 'Unit')
+    rows = [('τ', 16, 2, 'day'),
+            ('E', 50, 5, ''),
+            ('p_t', 0.26, 0.05, '%'),
+            ('p_d', 0.7, 0.15, '%'),
+            ('p_h', 1.3, 0.3, '%'),
+            ('p_v', 20, 2, '%')
+           ]
+    table = table_str(header, rows, 'Primary parameters')
+    print(table)
+    print()
+
+
+    header = ('', 'Mean', 'Std', 'Unit')
+    rows = [('k_I+', 16, 2, 'day\u207B\u00B9'),
+            ('k_I-', 16, 2, 'day\u207B\u00B9')
+           ]
+    table = table_str(header, rows, 'Derived parameters')
+    print(table)
