@@ -267,7 +267,7 @@ def ua(virus_id, country_id,
     kIplus = get_kIplus(encounters_per_day, p_t)
     y0 = [population, n_sick_init, 0, 0]
 
-    xnames = r'$p_{\rm{h}}$ (%)', r'$\tau$ (days)', 'E'
+    xnames = r'$p_{\rm{h}}$ (%)', r'$\tau$ (days)', r'$E$'
     mean = [0.013 , tau_nom, encounters_per_day]
     cov = [[0.00001, 0. , 0], [0., 4., 0], [0., 0, 16]]
     xvals = np.random.multivariate_normal(mean, cov, nsamples).T
