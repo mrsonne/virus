@@ -213,7 +213,8 @@ def ua(virus_id, country_id,
        infections_at_tau=0.2):
     """Uncertainty analysis
     """
-
+    # Seed so I dont have to change the text for each run
+    np.random.seed(0)
     # header = ('', 'Mean', 'Std', 'Unit')
     # rows = [('τ', 16, 2, 'day'),
     #         ('E', 50, 5, ''),
