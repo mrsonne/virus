@@ -72,13 +72,13 @@ def cplot(x, y, z, p_d_nom, tau_nom, title=''):
     plt.show()
 
 
-def ua_plot(xvals, yvals, ypercentiles, xnames, yname, percentiel_name, n_bins=25, title=''):
+def ua_plot(xvals, yvals, ypercentiles, xnames, yname, ventilator_capacity, pct_above_maxvent, n_bins=25, title=''):
     font_size = 16
     nattrs = xvals.shape[0]
     fig = plt.figure(figsize=(14, 7), constrained_layout=True)
     gs = fig.add_gridspec(ncols=3, nrows=nattrs)
     axs = []
-    for row in range(2):
+    for row in range(nattrs):
         axs.append(fig.add_subplot(gs[row, 0]))
 
     ax_big = fig.add_subplot(gs[:, 1:])
@@ -91,11 +91,11 @@ def ua_plot(xvals, yvals, ypercentiles, xnames, yname, percentiel_name, n_bins=2
        ax.tick_params(axis='y', labelsize=font_size)
 
 
-    ax_big.axvspan(ypercentiles[0], ypercentiles[-1], alpha=0.3, color='seagreen',
-                   label='{} % CI ({:5.1e} to {:5.1e})'.format(percentiel_name, ypercentiles[0], ypercentiles[-1]))
     ax_big.hist(yvals, bins=n_bins, density=True, align='mid')
-    ax_big.axvline(ypercentiles[1], color='black',
-                   label='Median ({:5.1e})'.format(ypercentiles[1]))
+    xlim = ax_big.get_xlim()
+    ax_big.axvspan(ventilator_capacity, xlim[1], alpha=0.3, color='tomato',
+                   label='Ventilator capacity exceeded (p={:<4.1f} %)'.format(pct_above_maxvent))
+    ax_big.set_xlim(xlim)
     ax_big.set_xlabel(yname, fontsize=font_size)
     ax_big.set_ylabel('Density', fontsize=font_size)
     ax_big.legend(fontsize=font_size) 

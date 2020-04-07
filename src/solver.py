@@ -65,7 +65,8 @@ def extract_time_series(sol, ytot, p_sick_to_hospitalized, p_hospitalized_to_ven
     dead = sol.y[dead_idx]*ytot
     hospitalized = sol.y[sick_idx]*ytot*p_sick_to_hospitalized
     ventilator = np.minimum(hospitalized*p_hospitalized_to_ventilator, ventilator_capacity)
-    return sol.t, sick, recovered, dead, hospitalized, ventilator
+    ventilators_required = hospitalized*p_hospitalized_to_ventilator
+    return sol.t, sick, recovered, dead, hospitalized, ventilator, ventilators_required
 
 
 def solve(encounters_per_day,
@@ -92,7 +93,7 @@ def solve(encounters_per_day,
     times = np.linspace(*tspan, n_time_eval)
 
     run = True
-    ts, sick, recovered, dead, hospitalized, ventilator = [], [], [], [], [], []
+    ts, sick, recovered, dead, hospitalized, ventilator, ventilators_required = [], [], [], [], [], [], []
 
     sol = solve_ivp(dydt, tspan, y0,
                     args=(kIminus, kIplus, p_sick_to_recovered,
@@ -106,11 +107,13 @@ def solve(encounters_per_day,
                     events=exceed_ventilator_capacity
                 )
 
-    _ts, _sick, _recovered, _dead, _hospitalized, _ventilator = extract_time_series(sol,
-                                                                            ytot,
-                                                                            p_sick_to_hospitalized,
-                                                                            p_hospitalized_to_ventilator,
-                                                                            ventilator_capacity)
+    (_ts, _sick, _recovered,
+    _dead, _hospitalized, _ventilator,
+    _ventilators_required) = extract_time_series(sol,
+                                                 ytot,
+                                                 p_sick_to_hospitalized,
+                                                 p_hospitalized_to_ventilator,
+                                                 ventilator_capacity)
 
     ts = np.append(ts, _ts)
     sick = np.append(sick, _sick)
@@ -118,6 +121,6 @@ def solve(encounters_per_day,
     dead = np.append(dead, _dead)
     hospitalized = np.append(hospitalized, _hospitalized)
     ventilator = np.append(ventilator, _ventilator)
+    ventilators_required = np.append(ventilators_required, _ventilators_required)
 
-
-    return ts, sick, hospitalized, ventilator, recovered, dead
+    return ts, sick, hospitalized, ventilator, recovered, dead, ventilators_required

@@ -1,5 +1,6 @@
 import itertools
 import numpy as np
+from scipy.stats import percentileofscore
 from .data import PARSFUN_FOR_VIRUSID
 from .solver import solve, get_kIplus
 from . import render
@@ -115,7 +116,8 @@ def run_country(virus_id, country_id, encounters_per_day=None,
     hospitalized,
     ventilator,
     recovered,
-    dead) = solve(_encounters_per_day,
+    dead,
+    _) = solve(_encounters_per_day,
                          p_transmision,
                          tau,
                          kIminus,
@@ -185,7 +187,8 @@ def map_country(virus_id, country_id, encounters_per_day=None,
         _,
         _,
         _,
-        dead) = solve(encounters_per_day,
+        dead,
+        _) = solve(encounters_per_day,
                       p_t,
                       tau,
                       kIminus,
@@ -262,35 +265,31 @@ def ua(virus_id, country_id,
     kIplus = get_kIplus(encounters_per_day, p_t)
     y0 = [population, n_sick_init, 0, 0]
 
-    xnames = r'$p_{\rm{d}}$ (%)', r'$\tau$ (days)'
-    mean = [0.0075 , tau_nom]
-    cov = [[0.000001, 0.],[0., 4.]]
+    xnames = r'$p_{\rm{h}}$ (%)', r'$\tau$ (days)', 'E'
+    mean = [0.013 , tau_nom, encounters_per_day]
+    cov = [[0.00001, 0. , 0], [0., 4., 0], [0., 0, 16]]
     xvals = np.random.multivariate_normal(mean, cov, nsamples).T
 
-    deads = []
-    for p_d, tau in xvals.T:
+    ventilators = []
+    for p_h, tau, E in xvals.T:
         kIminus = np.log(infections_at_tau)/tau
-        (_, 
-        _,
-        _,
-        _,
-        _,
-        dead) = solve(encounters_per_day,
-                      p_t,
-                      tau,
-                      kIminus,
-                      p_d,
-                      p_dnv,
-                      p_h,
-                      p_v,
-                      tspan, 
-                      y0, ventilator_capacity)
-        deads.append(dead[-1])
+        ventilators_required = solve(E,
+                                      p_t,
+                                      tau,
+                                      kIminus,
+                                      p_d_nom,
+                                      p_dnv,
+                                      p_h,
+                                      p_v,
+                                      tspan, 
+                                      y0, ventilator_capacity)[-1]
+        ventilators.append(max(ventilators_required))
 
-    yname = 'Deads'
+    yname = 'Ventilators required'
     # Convert p_d to percent
     xvals[0, :] *= 100
-    percentiles = np.percentile(deads, q=(5, 50, 95))
+    percentiles = np.percentile(ventilators, q=(5, 50, 95))
+    pct_above_maxvent = 100. - percentileofscore(ventilators, ventilator_capacity)
     title = '{}, $E$={}'.format(virus_id, encounters_per_day)
-    render.ua_plot(xvals, deads, percentiles, xnames, yname,
-                   percentiel_name='90', title=title)
+    render.ua_plot(xvals, ventilators, percentiles, xnames, yname, ventilator_capacity, pct_above_maxvent,
+                   title=title)

@@ -15,6 +15,7 @@ encounters_per_day = 50 # adjusted to fit flu data (adjusted with transmission p
 # encounters_per_day = None # constant sick count
 
 # countries.run_country('flu', 'denmark', encounters_per_day)
+# countries.run_country('covid19', 'denmark', None)
 # countries.run_country('covid19', 'denmark', encounters_per_day)
 # countries.run_country('covid19', 'denmark', encounters_per_day, show_recovered=True, tspan=[0,320])
 
@@ -22,5 +23,5 @@ encounters_per_day = 50 # adjusted to fit flu data (adjusted with transmission p
 # countries.map_country('covid19', 'denmark', encounters_per_day, tspan=[0, 400])
 # countries.map_country('flu', 'denmark', encounters_per_day, tspan=[0, 400])
 
-countries.ua('covid19', 'denmark', encounters_per_day, 
-              nsamples=100, tspan=[0, 400])
+countries.ua('covid19', 'denmark', 30,
+              nsamples=500, tspan=[0, 400])
