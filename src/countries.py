@@ -261,7 +261,8 @@ def ua(virus_id, country_id,
         raise KeyError(err_str.format(country_id,
                                       ', '.join(list(COUNTRYFUN_FOR_COUNTRYID.keys()))))
 
-    n_sick_init = 5    
+    # Reduce onset time
+    n_sick_init = 250
     kIplus = get_kIplus(encounters_per_day, p_t)
     y0 = [population, n_sick_init, 0, 0]
 
@@ -274,7 +275,13 @@ def ua(virus_id, country_id,
     ventilator_series = []
     for p_h, tau, E in xvals.T:
         kIminus = np.log(infections_at_tau)/tau
-        ventilators_required = solve(E,
+        (times,
+        _,
+        _,
+        _,
+        _,
+        _,
+        ventilators_required) = solve(E,
                                       p_t,
                                       tau,
                                       kIminus,
@@ -283,7 +290,7 @@ def ua(virus_id, country_id,
                                       p_h,
                                       p_v,
                                       tspan, 
-                                      y0, ventilator_capacity)[-1]
+                                      y0, ventilator_capacity)
         ventilators.append(max(ventilators_required))
         ventilator_series.append(ventilators_required)
 
@@ -295,5 +302,4 @@ def ua(virus_id, country_id,
     title = '{}, $E$={}'.format(virus_id, encounters_per_day)
     render.ua_plot(xvals, ventilators, percentiles, xnames, yname, ventilator_capacity, pct_above_maxvent,
                    title=title)
-
-    # render.ua_timeseries(np.array(ventilator_series).T)
+    return times, np.array(ventilator_series)

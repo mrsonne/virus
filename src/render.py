@@ -104,13 +104,19 @@ def ua_plot(xvals, yvals, ypercentiles, xnames, yname, ventilator_capacity, pct_
     plt.show()
 
 
-def ua_timeseries(time_series):
+def ua_timeseries(times, values):
+    font_size = 16
     fig, ax = plt.subplots(figsize=(12, 8))
-    avg = np.average(time_series, axis=1)
-    p95 = np.percentile(time_series, 95, axis=1)
-    p05 = np.percentile(time_series, 5, axis=1)
-    ax.plot(time_series, color="seagreen", alpha=0.2, linewidth=1)
-    ax.plot(avg, color="black", alpha=1, linewidth=2)
-    ax.plot(p95, color="blue", alpha=1, linewidth=1)
-    ax.plot(p05, color="red", alpha=1, linewidth=1)
+    avg = np.average(values, axis=1)
+    p95 = np.percentile(values, 90, axis=1)
+    p05 = np.percentile(values, 10, axis=1)
+    ax.plot(times, values, color="seagreen", alpha=0.2, linewidth=2)
+    ax.plot(times, values[:, 0], color="seagreen", alpha=0.2, linewidth=2, label='Samples')
+    ax.fill_between(times, p05, p95, color="orange", alpha=0.3, linewidth=1, label='CI 80 %', zorder=999)
+    ax.plot(times, avg, color="black", alpha=1, linewidth=2, label='Average')
+    ax.legend(fontsize=font_size) 
+    ax.set_xlabel('Time (day)', fontsize=font_size)
+    ax.set_ylabel('Ventilators required', fontsize=font_size)
+    ax.tick_params(axis='x', labelsize=font_size)
+    ax.tick_params(axis='y', labelsize=font_size)
     plt.show()

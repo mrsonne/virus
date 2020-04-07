@@ -1,4 +1,4 @@
-from src import countries
+from src import countries, render
 
 # TODO 
 # Notebook
@@ -23,5 +23,7 @@ encounters_per_day = 50 # adjusted to fit flu data (adjusted with transmission p
 # countries.map_country('covid19', 'denmark', encounters_per_day, tspan=[0, 400])
 # countries.map_country('flu', 'denmark', encounters_per_day, tspan=[0, 400])
 
-countries.ua('covid19', 'denmark', 30,
-              nsamples=500, tspan=[0, 400])
+times, ventilator_tseries = countries.ua('covid19', 'denmark', 30,
+                                         nsamples=500, tspan=[0, 400])
+
+render.ua_timeseries(times, ventilator_tseries.T)
