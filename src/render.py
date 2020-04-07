@@ -91,10 +91,17 @@ def ua_plot(xvals, yvals, ypercentiles, xnames, yname, ventilator_capacity, pct_
        ax.tick_params(axis='y', labelsize=font_size)
 
 
+    y_avg = np.average(yvals)
+    y_p50 = np.percentile(yvals, 50)
     ax_big.hist(yvals, bins=n_bins, density=True, align='mid')
     xlim = ax_big.get_xlim()
     ax_big.axvspan(ventilator_capacity, xlim[1], alpha=0.3, color='tomato',
-                   label='Ventilator capacity exceeded (p={:<4.1f} %)'.format(pct_above_maxvent))
+                   label='Capacity exceeded (p={:<4.1f} %)'.format(pct_above_maxvent))
+    ax_big.axvline(y_avg, color='black',
+                   label='Average: {:<4.0f}'.format(y_avg))
+    # ax_big.axvline(y_p50, color='black',
+    #                label='Median: {:<4.0f}'.format(y_p50))
+
     ax_big.set_xlim(xlim)
     ax_big.set_xlabel(yname, fontsize=font_size)
     ax_big.set_ylabel('Density', fontsize=font_size)
@@ -108,13 +115,17 @@ def ua_timeseries(times, values):
     font_size = 16
     fig, ax = plt.subplots(figsize=(12, 8))
     avg = np.average(values, axis=1)
-    p95 = np.percentile(values, 90, axis=1)
-    p05 = np.percentile(values, 10, axis=1)
-    ax.plot(times, values, color="seagreen", alpha=0.2, linewidth=2)
+    avg_max = max(avg)
+    p50 = np.percentile(values, 50, axis=1)
+    p95 = np.percentile(values, 95, axis=1)
+    p05 = np.percentile(values, 5, axis=1)
+    ax.plot(times, values, color="black", alpha=0.1, linewidth=2)
     ax.plot(times, values[:, 0], color="seagreen", alpha=0.2, linewidth=2, label='Samples')
-    ax.fill_between(times, p05, p95, color="orange", alpha=0.3, linewidth=1, label='CI 80 %', zorder=999)
-    ax.plot(times, avg, color="black", alpha=1, linewidth=2, label='Average')
-    ax.legend(fontsize=font_size) 
+    ax.fill_between(times, p05, p95, color="orange", alpha=0.5, linewidth=1, label='CI 90 %', zorder=9999)
+    # ax.plot(times, p50, color="black", alpha=1, linewidth=2, label='Median', zorder=10000)
+    ax.plot(times, avg, color="black", alpha=1, linewidth=2,
+            label='Average (max={:5.1e})'.format(avg_max), zorder=10000)
+    ax.legend(fontsize=font_size, loc='upper left')
     ax.set_xlabel('Time (day)', fontsize=font_size)
     ax.set_ylabel('Ventilators required', fontsize=font_size)
     ax.tick_params(axis='x', labelsize=font_size)
