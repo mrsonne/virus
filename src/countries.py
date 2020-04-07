@@ -63,7 +63,7 @@ def run_country(virus_id, country_id, encounters_per_day=None,
     kIminus = np.log(infections_at_tau)/tau
 
     if encounters_per_day is None:
-        _encounters_per_day = kIminus/get_kIplus(1., p_transmision) # constant sick count
+        _encounters_per_day = -kIminus/get_kIplus(1., p_transmision) # constant sick count
     else:
         _encounters_per_day = encounters_per_day
 
