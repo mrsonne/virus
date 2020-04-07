@@ -113,7 +113,7 @@ def ua_plot(xvals, yvals, ypercentiles, xnames, yname, ventilator_capacity, pct_
 
 def ua_timeseries(times, values):
     font_size = 16
-    fig, ax = plt.subplots(figsize=(12, 8))
+    fig, ax = plt.subplots(figsize=(15, 8))
     avg = np.average(values, axis=1)
     avg_max = max(avg)
     p50 = np.percentile(values, 50, axis=1)
