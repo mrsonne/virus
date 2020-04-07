@@ -271,6 +271,7 @@ def ua(virus_id, country_id,
     xvals = np.random.multivariate_normal(mean, cov, nsamples).T
 
     ventilators = []
+    ventilator_series = []
     for p_h, tau, E in xvals.T:
         kIminus = np.log(infections_at_tau)/tau
         ventilators_required = solve(E,
@@ -284,6 +285,7 @@ def ua(virus_id, country_id,
                                       tspan, 
                                       y0, ventilator_capacity)[-1]
         ventilators.append(max(ventilators_required))
+        ventilator_series.append(ventilators_required)
 
     yname = 'Ventilators required'
     # Convert p_d to percent
@@ -293,3 +295,5 @@ def ua(virus_id, country_id,
     title = '{}, $E$={}'.format(virus_id, encounters_per_day)
     render.ua_plot(xvals, ventilators, percentiles, xnames, yname, ventilator_capacity, pct_above_maxvent,
                    title=title)
+
+    # render.ua_timeseries(np.array(ventilator_series).T)
