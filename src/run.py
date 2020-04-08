@@ -45,7 +45,7 @@ def get_pars(virus_id, country_id, encounters_per_day, infections_at_tau, tspan)
             tau, kIminus, tspan)
 
 
-def run_country(virus_id, country_id, encounters_per_day=None,
+def virus(virus_id, country_id, encounters_per_day=None,
                 show_recovered=False, tspan=None):
     """
     Virus simulation
@@ -104,7 +104,7 @@ def run_country(virus_id, country_id, encounters_per_day=None,
 
 
 
-def map_country(virus_id, country_id, encounters_per_day=None,
+def contour(virus_id, country_id, encounters_per_day=None,
                 tspan=None):
     """Grid
     """
