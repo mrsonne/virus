@@ -1,40 +1,48 @@
 import itertools
 import numpy as np
 from scipy.stats import percentileofscore
-from .data import PARSFUN_FOR_VIRUSID
+from .data import COUNTRYFUN_FOR_COUNTRYID
 from .solver import solve, get_kIplus
 from . import render
 
-def _get_denmark():
-    """
-    Danish flu data in Table 2 (~1000 deads per year)
-    https://www.ssi.dk/sygdomme-beredskab-og-forskning/sygdomsovervaagning/i/influenzasaesonen---opgoerelse-over-sygdomsforekomst-2018-19
-    """
-    population = int(5e6)
-    ventilator_capacity = 1000
-    return population, ventilator_capacity
+def get_pars(virus_id, country_id, encounters_per_day, infections_at_tau, tspan):
 
 
-COUNTRYFUN_FOR_COUNTRYID = {'denmark': _get_denmark}
+    try:
+        (population,
+        ventilator_capacity,
+        _tspan,
+        p_t,
+        p_v,
+        p_h,
+        p_d,
+        p_dnv,
+        tau) = COUNTRYFUN_FOR_COUNTRYID[country_id](virus_id)
+    except KeyError:
+        err_str = 'Unknown country ID "{}". Available IDs: {}'
+        raise KeyError(err_str.format(country_id,
+                                      ', '.join(list(COUNTRYFUN_FOR_COUNTRYID.keys()))))
 
+    kIminus = np.log(infections_at_tau)/tau
 
-def table_str(header, rows, title):
-    fstrs = '{:<10} {:^10} {:^10} {:^5}'
-    fstrn = '{:<10} {:^10} {:^10} {:^5}'
+    if encounters_per_day is None:
+        E = -kIminus/get_kIplus(1., p_t) # constant sick count
+    else:
+        E = encounters_per_day
 
-    lines = [fstrn.format(*row) for row in rows]
-    lines.insert(0, fstrs.format(*header))
+    if not tspan:
+        tspan = _tspan
 
-
-    sepchr = '-'
-    length = max([len(line) for line in lines])
-    sep = length*sepchr
-    lines.insert(0, sep)
-    lines.insert(2, sep)
-    lines.append(sep)
-    lines.insert(0, title)
-    return '\n'.join(lines)
-
+    return (E, 
+            population,
+            ventilator_capacity,
+            _tspan,
+            p_t,
+            p_v,
+            p_h,
+            p_d,
+            p_dnv,
+            tau, kIminus, tspan)
 
 
 def run_country(virus_id, country_id, encounters_per_day=None,
@@ -43,71 +51,31 @@ def run_country(virus_id, country_id, encounters_per_day=None,
     Virus simulation
     """
 
-    try:
-        (_tspan,
-        p_transmision,
-        p_hospitalized_to_ventilator,
-        p_sick_to_hospitalized,
-        p_sick_to_dead,
-        p_sick_to_dead_no_ventilator,
-        tau
-        ) = PARSFUN_FOR_VIRUSID[virus_id]()
-    except KeyError:
-        err_str = 'Unknown virus ID "{}". Available IDs: {}'
-        raise KeyError(err_str.format(virus_id,
-                                      ', '.join(list(PARSFUN_FOR_VIRUSID.keys()))))
-
-    if not tspan:
-        tspan = _tspan
-    # Always 80 % loose infection after infection duration
+    # 80 % infections disappeared after infection time
     infections_at_tau = 0.2
-    kIminus = np.log(infections_at_tau)/tau
 
-    if encounters_per_day is None:
-        _encounters_per_day = -kIminus/get_kIplus(1., p_transmision) # constant sick count
-    else:
-        _encounters_per_day = encounters_per_day
-
-    try:
-        population, ventilator_capacity = COUNTRYFUN_FOR_COUNTRYID[country_id]()
-    except KeyError:
-        err_str = 'Unknown country ID "{}". Available IDs: {}'
-        raise KeyError(err_str.format(country_id,
-                                      ', '.join(list(COUNTRYFUN_FOR_COUNTRYID.keys()))))
+    (E, 
+    population,
+    ventilator_capacity,
+    _tspan,
+    p_t,
+    p_v,
+    p_h,
+    p_d,
+    p_dnv,
+    tau,
+    kIminus,
+    tspan) = get_pars(virus_id, country_id,
+                      encounters_per_day,
+                      infections_at_tau, tspan)
 
 
     n_sick_init = 5
     
-    kIplus = get_kIplus(_encounters_per_day, p_transmision)
-
-    fstr = '{:20} {:7} {}'
-    ostrs = []
-    ostrs.append(fstr.format('Encounters per day',  _encounters_per_day, ''))
-    ostrs.append(fstr.format('Population', population, ''))
-    ostrs.append(fstr.format('Ventilators', ventilator_capacity, ''))
-    ostrs.append(fstr.format('Sick at day 0', n_sick_init, ''))
-    ostrs.append(fstr.format('Infection time τ', tau, 'day'))
-
-    fstr = '{:20} {:7.2f} {}'
-    ostrs.append(fstr.format('k_I+', kIplus, '/day'))
-    ostrs.append(fstr.format('k_I-', kIminus, '/day'))
-    ostrs.append(fstr.format('-k_I+ / k_I-', -kIplus / kIminus, ''))
-
-    fstr = '{:20} {:7.1f} %'
-    ostrs.append(fstr.format('Infections at τ (%)', infections_at_tau*100))
-    ostrs.append(fstr.format('p_t', p_transmision*100))
-    ostrs.append(fstr.format('p_h', p_sick_to_hospitalized*100))
-    ostrs.append(fstr.format('p_d', p_sick_to_dead*100))
-    ostrs.append(fstr.format('p_v', p_hospitalized_to_ventilator*100))
-    ostrs.append( fstr.format('p_d,nv', p_sick_to_dead_no_ventilator*100))
-
-    ostrs.insert(0, 'Parameters')
-    max_length = max([len(ostr) for ostr in ostrs])
-    ostrs.insert(0, '-'*max_length) 
-    ostrs.insert(2, '-'*max_length) 
-    ostrs.append('-'*max_length) 
-
-    print('\n'.join(ostrs))
+    kIplus = get_kIplus(E, p_t)
+    print(render.par_table(E, population, ventilator_capacity,
+                           n_sick_init, tau, kIplus, kIminus, infections_at_tau,
+                           p_t, p_h, p_d, p_v, p_dnv))
 
     y0 = [population, n_sick_init, 0, 0]
 
@@ -117,18 +85,19 @@ def run_country(virus_id, country_id, encounters_per_day=None,
     ventilator,
     recovered,
     dead,
-    _) = solve(_encounters_per_day,
-                         p_transmision,
-                         tau,
-                         kIminus,
-                         p_sick_to_dead,
-                         p_sick_to_dead_no_ventilator,
-                         p_sick_to_hospitalized,
-                         p_hospitalized_to_ventilator,
-                         tspan, 
-                         y0, ventilator_capacity)
+    _) = solve(E,
+               p_t,
+               tau,
+               kIminus,
+               p_d,
+               p_dnv,
+               p_h,
+               p_v,
+               tspan, 
+               y0,
+               ventilator_capacity)
 
-    title = '{} ($E$={})'.format(virus_id, encounters_per_day)
+    title = '{} ($E$={}/day)'.format(virus_id, E)
     render.plot(times, sick, hospitalized, ventilator, recovered, dead,
                 show_recovered=show_recovered, title=title)
 
@@ -137,41 +106,29 @@ def run_country(virus_id, country_id, encounters_per_day=None,
 
 def map_country(virus_id, country_id, encounters_per_day=None,
                 tspan=None):
-    """Sensitivity plot
+    """Grid
     """
 
-    # Nominal parameters
-    try:
-        (_tspan,
-        p_t,
-        p_v,
-        p_h,
-        p_d_nom,
-        p_dnv,
-        tau_nom
-        ) = PARSFUN_FOR_VIRUSID[virus_id]()
-    except KeyError:
-        err_str = 'Unknown virus ID "{}". Available IDs: {}'
-        raise KeyError(err_str.format(virus_id,
-                                      ', '.join(list(PARSFUN_FOR_VIRUSID.keys()))))
-
-    if not tspan:
-        tspan = _tspan
-
-    # Always 80 % loose infection after infection duration
+    # 80 % infections disappeared after infection time
     infections_at_tau = 0.2
 
+    (E, 
+    population,
+    ventilator_capacity,
+    _tspan,
+    p_t,
+    p_v,
+    p_h,
+    p_d_nom,
+    p_dnv,
+    tau_nom,
+    kIminus,
+    tspan) = get_pars(virus_id, country_id,
+                      encounters_per_day,
+                      infections_at_tau, tspan)
 
-    try:
-        population, ventilator_capacity = COUNTRYFUN_FOR_COUNTRYID[country_id]()
-    except KeyError:
-        err_str = 'Unknown country ID "{}". Available IDs: {}'
-        raise KeyError(err_str.format(country_id,
-                                      ', '.join(list(COUNTRYFUN_FOR_COUNTRYID.keys()))))
 
-
-    n_sick_init = 5    
-    kIplus = get_kIplus(encounters_per_day, p_t)
+    n_sick_init = 5
     y0 = [population, n_sick_init, 0, 0]
 
     deads = []
@@ -202,7 +159,7 @@ def map_country(virus_id, country_id, encounters_per_day=None,
         taus.append(tau)
         ps_d.append(p_d)
 
-    title = 'Deads ({}, $E$={})'.format(virus_id, encounters_per_day)
+    title = 'Deads ({}, $E$={}/day)'.format(virus_id, E)
     render.cplot(np.array(ps_d)*100, np.array(taus), deads, p_d_nom*100, tau_nom, title=title)
 
 
@@ -215,60 +172,32 @@ def ua(virus_id, country_id,
     """
     # Seed so I dont have to change the text for each run
     np.random.seed(0)
-    # header = ('', 'Mean', 'Std', 'Unit')
-    # rows = [('τ', 16, 2, 'day'),
-    #         ('E', 50, 5, ''),
-    #         ('p_t', 0.26, 0.05, '%'),
-    #         ('p_d', 0.7, 0.15, '%'),
-    #         ('p_h', 1.3, 0.3, '%'),
-    #         ('p_v', 20, 2, '%')
-    #        ]
-    # table = table_str(header, rows, 'Primary parameters')
-    # print(table)
-    # print()
 
+    # 80 % infections disappeared after infection time
+    infections_at_tau = 0.2
 
-
-    # header = ('', 'Mean', 'Std', 'Unit')
-    # rows = [('k_I+', 16, 2, 'day\u207B\u00B9'),
-    #         ('k_I-', 16, 2, 'day\u207B\u00B9')
-    #        ]
-    # table = table_str(header, rows, 'Derived parameters')
-    # print(table)
-
-    # Nominal parameters
-    try:
-        (_tspan,
-        p_t,
-        p_v,
-        p_h,
-        p_d_nom,
-        p_dnv,
-        tau_nom
-        ) = PARSFUN_FOR_VIRUSID[virus_id]()
-    except KeyError:
-        err_str = 'Unknown virus ID "{}". Available IDs: {}'
-        raise KeyError(err_str.format(virus_id,
-                                      ', '.join(list(PARSFUN_FOR_VIRUSID.keys()))))
-
-    if not tspan:
-        tspan = _tspan
-
-
-    try:
-        population, ventilator_capacity = COUNTRYFUN_FOR_COUNTRYID[country_id]()
-    except KeyError:
-        err_str = 'Unknown country ID "{}". Available IDs: {}'
-        raise KeyError(err_str.format(country_id,
-                                      ', '.join(list(COUNTRYFUN_FOR_COUNTRYID.keys()))))
+    (E, 
+    population,
+    ventilator_capacity,
+    _tspan,
+    p_t,
+    p_v,
+    p_h_nom,
+    p_d,
+    p_dnv,
+    tau_nom,
+    kIminus,
+    tspan) = get_pars(virus_id, country_id,
+                      encounters_per_day,
+                      infections_at_tau, tspan)
 
     # Reduce onset time
     n_sick_init = 250
-    kIplus = get_kIplus(encounters_per_day, p_t)
+    kIplus = get_kIplus(E, p_t)
     y0 = [population, n_sick_init, 0, 0]
 
-    xnames = r'$p_{\rm{h}}$ (%)', r'$\tau$ (days)', r'$E$'
-    mean = [0.013 , tau_nom, encounters_per_day]
+    xnames = r'$p_{\rm{h}}$ (%)', r'$\tau$ (days)', '$E$ (day\u207B\u00B9)'
+    mean = [p_h_nom , tau_nom, E]
     cov = [[0.00001, 0. , 0], [0., 4., 0], [0., 0, 16]]
     xvals = np.random.multivariate_normal(mean, cov, nsamples).T
 
@@ -286,7 +215,7 @@ def ua(virus_id, country_id,
                                       p_t,
                                       tau,
                                       kIminus,
-                                      p_d_nom,
+                                      p_d,
                                       p_dnv,
                                       p_h,
                                       p_v,
@@ -296,11 +225,11 @@ def ua(virus_id, country_id,
         ventilator_series.append(ventilators_required)
 
     yname = 'Ventilators required'
-    # Convert p_d to percent
+    # Convert p_d to percent for plotting
     xvals[0, :] *= 100
     percentiles = np.percentile(ventilators, q=(5, 50, 95))
     pct_above_maxvent = 100. - percentileofscore(ventilators, ventilator_capacity)
-    title = '{}, $E$={}'.format(virus_id, encounters_per_day)
+    title = '{}, $E$={}'.format(virus_id, E)
     render.ua_plot(xvals, ventilators, percentiles, xnames, yname, ventilator_capacity, pct_above_maxvent,
                    title=title)
     return times, np.array(ventilator_series)

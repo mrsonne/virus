@@ -2,6 +2,57 @@ import matplotlib.pyplot as plt
 import numpy as np
 from scipy.interpolate import griddata
 
+def table_str(header, rows, title):
+    fstrs = '{:<10} {:^10} {:^10} {:^5}'
+    fstrn = '{:<10} {:^10} {:^10} {:^5}'
+
+    lines = [fstrn.format(*row) for row in rows]
+    lines.insert(0, fstrs.format(*header))
+
+
+    sepchr = '-'
+    length = max([len(line) for line in lines])
+    sep = length*sepchr
+    lines.insert(0, sep)
+    lines.insert(2, sep)
+    lines.append(sep)
+    lines.insert(0, title)
+    return '\n'.join(lines)
+
+
+def par_table(E, population, ventilator_capacity,
+              n_sick_init, tau, kIplus, kIminus, infections_at_tau,
+              p_t, p_h, p_d, p_v, p_dnv):
+    fstr = '{:20} {:7} {}'
+    ostrs = []
+    ostrs.append(fstr.format('Encounters',  E, '/day'))
+    ostrs.append(fstr.format('Population', population, ''))
+    ostrs.append(fstr.format('Ventilators', ventilator_capacity, ''))
+    ostrs.append(fstr.format('Sick at day 0', n_sick_init, ''))
+    ostrs.append(fstr.format('Infection time τ', tau, 'day'))
+
+    fstr = '{:20} {:7.2f} {}'
+    ostrs.append(fstr.format('k_I+', kIplus, '/day'))
+    ostrs.append(fstr.format('k_I-', kIminus, '/day'))
+    ostrs.append(fstr.format('-k_I+ / k_I-', -kIplus / kIminus, ''))
+
+    fstr = '{:20} {:7.1f} %'
+    ostrs.append(fstr.format('Infections at τ (%)', infections_at_tau*100))
+    ostrs.append(fstr.format('p_t', p_t*100))
+    ostrs.append(fstr.format('p_h', p_h*100))
+    ostrs.append(fstr.format('p_d', p_d*100))
+    ostrs.append(fstr.format('p_v', p_v*100))
+    ostrs.append( fstr.format('p_d,nv', p_dnv*100))
+
+    ostrs.insert(0, 'Parameters')
+    max_length = max([len(ostr) for ostr in ostrs])
+    ostrs.insert(0, '-'*max_length) 
+    ostrs.insert(2, '-'*max_length) 
+    ostrs.append('-'*max_length) 
+
+    return '\n'.join(ostrs)
+
+
 def plot(times, sick, hospitalized,
          ventilator, recovered, dead,
          ventilator_capacity=None,

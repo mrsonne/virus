@@ -34,3 +34,38 @@ def get_us_flu_data():
 
 PARSFUN_FOR_VIRUSID = dict(flu=get_flu_parameters,
                            covid19=get_covid19_parameters)
+
+
+def _get_denmark(virus_id):
+    """
+    Danish flu data in Table 2 (~1000 deads per year)
+    https://www.ssi.dk/sygdomme-beredskab-og-forskning/sygdomsovervaagning/i/influenzasaesonen---opgoerelse-over-sygdomsforekomst-2018-19
+    """
+    population = int(5e6)
+    ventilator_capacity = 1000
+
+    try:
+        (_tspan,
+        p_t,
+        p_v,
+        p_h,
+        p_d,
+        p_dnv,
+        tau
+        ) = PARSFUN_FOR_VIRUSID[virus_id]()
+    except KeyError:
+        err_str = 'Unknown virus ID "{}". Available IDs: {}'
+        raise KeyError(err_str.format(virus_id,
+                                      ', '.join(list(PARSFUN_FOR_VIRUSID.keys()))))
+
+    return (population, ventilator_capacity,
+           _tspan,
+           p_t,
+           p_v,
+           p_h,
+           p_d,
+           p_dnv,
+           tau)
+
+
+COUNTRYFUN_FOR_COUNTRYID = {'denmark': _get_denmark}
