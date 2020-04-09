@@ -69,9 +69,7 @@ def extract_time_series(sol, ytot, p_h, p_v, ventilator_capacity):
     return sol.t, sick, recovered, dead, hospitalized, ventilator, ventilators_required
 
 
-def solve(encounters_per_day,
-          p_t,
-          tau, # TODO: remove unused
+def solve(kIplus,
           kIminus,
           p_d,
           p_dnv,
@@ -79,9 +77,6 @@ def solve(encounters_per_day,
           p_v,
           tspan, y0, ventilator_capacity,
           n_time_eval=1000):
-
-    # TODO: calc outside
-    kIplus = get_kIplus(encounters_per_day, p_t)
 
     ytot = np.sum( y0 )
 

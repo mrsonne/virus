@@ -85,9 +85,7 @@ def virus(virus_id, country_id, encounters_per_day=None,
     ventilator,
     recovered,
     dead,
-    _) = solve(E,
-               p_t,
-               tau,
+    _) = solve(kIplus,
                kIminus,
                p_d,
                p_dnv,
@@ -131,6 +129,8 @@ def contour(virus_id, country_id, encounters_per_day=None,
     n_sick_init = 5
     y0 = [population, n_sick_init, 0, 0]
 
+    kIplus = get_kIplus(E, p_t)
+
     deads = []
     nsteps = 25
     _ps_d = np.linspace(0.001, 0.01, nsteps)
@@ -145,16 +145,15 @@ def contour(virus_id, country_id, encounters_per_day=None,
         _,
         _,
         dead,
-        _) = solve(encounters_per_day,
-                      p_t,
-                      tau,
-                      kIminus,
-                      p_d,
-                      p_dnv,
-                      p_h,
-                      p_v,
-                      tspan, 
-                      y0, ventilator_capacity)
+        _) = solve(kIplus,
+                   kIminus,
+                   p_d,
+                   p_dnv,
+                   p_h,
+                   p_v,
+                   tspan, 
+                   y0,
+                   ventilator_capacity)
         deads.append(dead[-1])
         taus.append(tau)
         ps_d.append(p_d)
@@ -193,7 +192,6 @@ def ua(virus_id, country_id,
 
     # Reduce onset time
     n_sick_init = 250
-    kIplus = get_kIplus(E, p_t)
     y0 = [population, n_sick_init, 0, 0]
 
     xnames = r'$p_{\rm{h}}$ (%)', r'$\tau$ (days)', '$E$ (day\u207B\u00B9)'
@@ -204,6 +202,7 @@ def ua(virus_id, country_id,
     ventilators = []
     ventilator_series = []
     for p_h, tau, E in xvals.T:
+        kIplus = get_kIplus(E, p_t)
         kIminus = np.log(infections_at_tau)/tau
         (times,
         _,
@@ -211,9 +210,7 @@ def ua(virus_id, country_id,
         _,
         _,
         _,
-        ventilators_required) = solve(E,
-                                      p_t,
-                                      tau,
+        ventilators_required) = solve(kIplus,
                                       kIminus,
                                       p_d,
                                       p_dnv,
