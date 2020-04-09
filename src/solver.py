@@ -59,6 +59,11 @@ def get_kIplus(encounters_per_day, p_t):
     return 2*encounters_per_day*p_t
 
 
+
+def get_kIminus(infections_at_tau, tau):
+    return np.log(infections_at_tau)/tau
+
+
 def extract_time_series(sol, ytot, p_h, p_v, ventilator_capacity):
     sick = sol.y[sick_idx]*ytot
     recovered = sol.y[recovered_idx]*ytot
@@ -69,14 +74,21 @@ def extract_time_series(sol, ytot, p_h, p_v, ventilator_capacity):
     return sol.t, sick, recovered, dead, hospitalized, ventilator, ventilators_required
 
 
-def solve(kIplus,
-          kIminus,
+def solve(y0,
+          infections_at_tau,
+          E,
+          p_t,
+          tau,
           p_d,
           p_dnv,
           p_h,
           p_v,
-          tspan, y0, ventilator_capacity,
+          tspan, 
+          ventilator_capacity,
           n_time_eval=1000):
+
+    kIplus = get_kIplus(E, p_t)
+    kIminus = get_kIminus(infections_at_tau, tau)
 
     ytot = np.sum( y0 )
 

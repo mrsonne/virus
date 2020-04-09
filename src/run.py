@@ -5,44 +5,26 @@ from .data import COUNTRYFUN_FOR_COUNTRYID
 from .solver import solve, get_kIplus
 from . import render
 
-def get_pars(virus_id, country_id, encounters_per_day, infections_at_tau, tspan):
+def get_pars(virus_id, country_id, encounters_per_day, tspan):
 
 
     try:
-        (population,
-        ventilator_capacity,
-        _tspan,
-        p_t,
-        p_v,
-        p_h,
-        p_d,
-        p_dnv,
-        tau) = COUNTRYFUN_FOR_COUNTRYID[country_id](virus_id)
+        pars, population = COUNTRYFUN_FOR_COUNTRYID[country_id](virus_id)
     except KeyError:
         err_str = 'Unknown country ID "{}". Available IDs: {}'
         raise KeyError(err_str.format(country_id,
                                       ', '.join(list(COUNTRYFUN_FOR_COUNTRYID.keys()))))
 
-    kIminus = np.log(infections_at_tau)/tau
 
     if encounters_per_day is None:
-        E = -kIminus/get_kIplus(1., p_t) # constant sick count
+        pars['E'] = -kIminus/get_kIplus(1., p_t) # constant sick count
     else:
-        E = encounters_per_day
+        pars['E'] = encounters_per_day
 
-    if not tspan:
-        tspan = _tspan
+    if tspan:
+        pars['tspan'] = tspan
 
-    return (E, 
-            population,
-            ventilator_capacity,
-            _tspan,
-            p_t,
-            p_v,
-            p_h,
-            p_d,
-            p_dnv,
-            tau, kIminus, tspan)
+    return pars, population
 
 
 def virus(virus_id, country_id, encounters_per_day=None,
@@ -54,29 +36,16 @@ def virus(virus_id, country_id, encounters_per_day=None,
     # 80 % infections disappeared after infection time
     infections_at_tau = 0.2
 
-    (E, 
-    population,
-    ventilator_capacity,
-    _tspan,
-    p_t,
-    p_v,
-    p_h,
-    p_d,
-    p_dnv,
-    tau,
-    kIminus,
-    tspan) = get_pars(virus_id, country_id,
-                      encounters_per_day,
-                      infections_at_tau, tspan)
+    pars, population = get_pars(virus_id, country_id,
+                                encounters_per_day,
+                                tspan)
 
 
     n_sick_init = 5
     
-    kIplus = get_kIplus(E, p_t)
-    print(render.par_table(E, population, ventilator_capacity,
-                           n_sick_init, tau, kIplus, kIminus, infections_at_tau,
-                           p_t, p_h, p_d, p_v, p_dnv))
+    print(render.par_table(population, n_sick_init, infections_at_tau, pars))
 
+    # TODO: subtract n_sick_init
     y0 = [population, n_sick_init, 0, 0]
 
     (times, 
@@ -85,17 +54,9 @@ def virus(virus_id, country_id, encounters_per_day=None,
     ventilator,
     recovered,
     dead,
-    _) = solve(kIplus,
-               kIminus,
-               p_d,
-               p_dnv,
-               p_h,
-               p_v,
-               tspan, 
-               y0,
-               ventilator_capacity)
+    _) = solve(y0, infections_at_tau, **pars)
 
-    title = '{} ($E$={}/day)'.format(virus_id, E)
+    title = '{} ($E$={}/day)'.format(virus_id, pars['E'])
     render.plot(times, sick, hospitalized, ventilator, recovered, dead,
                 show_recovered=show_recovered, title=title)
 
@@ -110,26 +71,16 @@ def contour(virus_id, country_id, encounters_per_day=None,
     # 80 % infections disappeared after infection time
     infections_at_tau = 0.2
 
-    (E, 
-    population,
-    ventilator_capacity,
-    _tspan,
-    p_t,
-    p_v,
-    p_h,
-    p_d_nom,
-    p_dnv,
-    tau_nom,
-    kIminus,
-    tspan) = get_pars(virus_id, country_id,
-                      encounters_per_day,
-                      infections_at_tau, tspan)
+    pars, population = get_pars(virus_id, country_id,
+                                encounters_per_day,
+                                tspan)
 
+    # Save nominel values
+    p_d_nom = pars['p_d'] 
+    tau_nom = pars['tau']
 
     n_sick_init = 5
     y0 = [population, n_sick_init, 0, 0]
-
-    kIplus = get_kIplus(E, p_t)
 
     deads = []
     nsteps = 25
@@ -138,27 +89,15 @@ def contour(virus_id, country_id, encounters_per_day=None,
     taus = []
     ps_d = []
     for i, (p_d, tau) in enumerate(itertools.product(_ps_d, _taus)):
-        kIminus = np.log(infections_at_tau)/tau
-        (_, 
-        _,
-        _,
-        _,
-        _,
-        dead,
-        _) = solve(kIplus,
-                   kIminus,
-                   p_d,
-                   p_dnv,
-                   p_h,
-                   p_v,
-                   tspan, 
-                   y0,
-                   ventilator_capacity)
-        deads.append(dead[-1])
+        pars['p_d'] = p_d
+        pars['tau'] = tau
+        # Use only last element of "deads" time series
+        dead_count = solve(y0, infections_at_tau, **pars)[-2][-1]
+        deads.append(dead_count)
         taus.append(tau)
         ps_d.append(p_d)
 
-    title = 'Deads ({}, $E$={}/day)'.format(virus_id, E)
+    title = 'Deads ({}, $E$={}/day)'.format(virus_id, pars['E'])
     render.cplot(np.array(ps_d)*100, np.array(taus), deads, p_d_nom*100, tau_nom, title=title)
 
 
@@ -175,49 +114,34 @@ def ua(virus_id, country_id,
     # 80 % infections disappeared after infection time
     infections_at_tau = 0.2
 
-    (E, 
-    population,
-    ventilator_capacity,
-    _tspan,
-    p_t,
-    p_v,
-    p_h_nom,
-    p_d,
-    p_dnv,
-    tau_nom,
-    kIminus,
-    tspan) = get_pars(virus_id, country_id,
-                      encounters_per_day,
-                      infections_at_tau, tspan)
+    pars, population = get_pars(virus_id, country_id,
+                                encounters_per_day,
+                                tspan)
+
 
     # Reduce onset time
     n_sick_init = 250
     y0 = [population, n_sick_init, 0, 0]
 
     xnames = r'$p_{\rm{h}}$ (%)', r'$\tau$ (days)', '$E$ (day\u207B\u00B9)'
-    mean = [p_h_nom , tau_nom, E]
+    mean = [pars["p_h"] , pars["tau"], pars["E"]]
     cov = [[0.00001, 0. , 0], [0., 4., 0], [0., 0, 16]]
     xvals = np.random.multivariate_normal(mean, cov, nsamples).T
 
     ventilators = []
     ventilator_series = []
     for p_h, tau, E in xvals.T:
-        kIplus = get_kIplus(E, p_t)
-        kIminus = np.log(infections_at_tau)/tau
+        pars['p_h'] = p_h
+        pars['tau'] = tau
+        pars['E'] = E
+
         (times,
         _,
         _,
         _,
         _,
         _,
-        ventilators_required) = solve(kIplus,
-                                      kIminus,
-                                      p_d,
-                                      p_dnv,
-                                      p_h,
-                                      p_v,
-                                      tspan, 
-                                      y0, ventilator_capacity)
+        ventilators_required) = solve(y0, infections_at_tau, **pars)
         ventilators.append(max(ventilators_required))
         ventilator_series.append(ventilators_required)
 
@@ -225,8 +149,8 @@ def ua(virus_id, country_id,
     # Convert p_d to percent for plotting
     xvals[0, :] *= 100
     percentiles = np.percentile(ventilators, q=(5, 50, 95))
-    pct_above_maxvent = 100. - percentileofscore(ventilators, ventilator_capacity)
+    pct_above_maxvent = 100. - percentileofscore(ventilators, pars["ventilator_capacity"])
     title = '{}, $E$={}'.format(virus_id, E)
-    render.ua_plot(xvals, ventilators, percentiles, xnames, yname, ventilator_capacity, pct_above_maxvent,
+    render.ua_plot(xvals, ventilators, percentiles, xnames, yname, pars["ventilator_capacity"], pct_above_maxvent,
                    title=title)
     return times, np.array(ventilator_series)

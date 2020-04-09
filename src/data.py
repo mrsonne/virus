@@ -45,7 +45,7 @@ def _get_denmark(virus_id):
     ventilator_capacity = 1000
 
     try:
-        (_tspan,
+        (tspan,
         p_t,
         p_v,
         p_h,
@@ -58,14 +58,14 @@ def _get_denmark(virus_id):
         raise KeyError(err_str.format(virus_id,
                                       ', '.join(list(PARSFUN_FOR_VIRUSID.keys()))))
 
-    return (population, ventilator_capacity,
-           _tspan,
-           p_t,
-           p_v,
-           p_h,
-           p_d,
-           p_dnv,
-           tau)
+    return {'ventilator_capacity': ventilator_capacity,
+           'tspan': tspan,
+           'p_t': p_t,
+           'p_v': p_v,
+           'p_h': p_h,
+           'p_d': p_d,
+           'p_dnv': p_dnv,
+           'tau': tau}, population
 
 
 COUNTRYFUN_FOR_COUNTRYID = {'denmark': _get_denmark}
