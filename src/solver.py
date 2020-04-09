@@ -132,4 +132,10 @@ def solve(y0,
     ventilator = np.append(ventilator, _ventilator)
     ventilators_required = np.append(ventilators_required, _ventilators_required)
 
-    return ts, sick, hospitalized, ventilator, recovered, dead, ventilators_required
+    return {'times': ts,
+            'infected': sick,
+            'hospitalized': hospitalized,
+            'ventilator': ventilator,
+            'recovered': recovered,
+            'dead': dead,
+            'ventilators_required': ventilators_required}

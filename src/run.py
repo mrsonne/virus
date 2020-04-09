@@ -13,6 +13,10 @@ def dummy_transform(val):
     return val
 
 
+def get_last(time_series):
+    return time_series[-1]
+
+
 def get_pars(virus_id, country_id, encounters_per_day, tspan):
 
 
@@ -56,21 +60,20 @@ def virus(virus_id, country_id, encounters_per_day=None,
     # TODO: subtract n_sick_init
     y0 = [population, n_sick_init, 0, 0]
 
-    (times, 
-    sick,
-    hospitalized,
-    ventilator,
-    recovered,
-    dead,
-    _) = solve(y0, infections_at_tau, **pars)
+    tss = solve(y0, infections_at_tau, **pars)
 
     title = '{} ($E$={}/day)'.format(virus_id, pars['E'])
-    render.plot(times, sick, hospitalized, ventilator, recovered, dead,
+    render.plot(tss["times"], 
+                tss["infected"],
+                tss["hospitalized"],
+                tss["ventilator"],
+                tss["recovered"],
+                tss["dead"],
                 show_recovered=show_recovered, title=title)
 
 
 
-def contour(virus_id, country_id, par1, par2, 
+def contour(virus_id, country_id, par1, par2, response,
             encounters_per_day=None, tspan=None,
             nsteps=25):
     """Grid
@@ -106,20 +109,19 @@ def contour(virus_id, country_id, par1, par2,
     pars1 = np.linspace(par1['min'], par1['max'], nsteps)
     pars2 = np.linspace(par2['min'], par2['max'], nsteps)
     pars1_grid, pars2_grid = [], []
-    deads_grid = []
+    resp_grid = []
     for i, (p1, p2) in enumerate(itertools.product(pars1, pars2)):
         pars[parstr1] = p1
         pars[parstr2] = p2
-        # Use only last element of "deads" time series
-        dead_count = solve(y0, infections_at_tau, **pars)[-2][-1]
-        deads_grid.append(dead_count)
+        time_series = solve(y0, infections_at_tau, **pars)[response["name"]]
+        resp_grid.append(response["transform"](time_series))
         pars1_grid.append(p1)
         pars2_grid.append(p2)
 
-    title = 'Deads ({}, $E$={}/day)'.format(virus_id, pars['E'])
+    title = '{} ({}, $E$={}/day)'.format(response["title"], virus_id, pars['E'])
     render.cplot(ftrans1(np.array(pars1_grid)), 
                  ftrans2(np.array(pars2_grid)),
-                 deads_grid, 
+                 resp_grid,
                  ftrans1(par1_nom), 
                  ftrans2(par2_nom), 
                  par1["axlabel"], par2["axlabel"], 
@@ -160,15 +162,11 @@ def ua(virus_id, country_id,
         pars['tau'] = tau
         pars['E'] = E
 
-        (times,
-        _,
-        _,
-        _,
-        _,
-        _,
-        ventilators_required) = solve(y0, infections_at_tau, **pars)
-        ventilators.append(max(ventilators_required))
-        ventilator_series.append(ventilators_required)
+        tss = solve(y0, infections_at_tau, **pars)
+        ventilators.append(max(tss["ventilators_required"]))
+        ventilator_series.append(tss["ventilators_required"])
+
+    times = tss["times"]
 
     yname = 'Ventilators required'
     # Convert p_d to percent for plotting
