@@ -12,7 +12,7 @@ def get_ventilators_required(ysick, ytot, p_h, p_v):
     return hospitalized*p_v
 
 
-def dydt(t, y, kIminus, kIplus, p_sick_to_recovered, p_d, p_dnv,
+def dydt(t, y, kIminus, kIplus, p_r, p_d, p_dnv,
          ventilator_capacity, p_h, p_v, ytot):
     """
     Model 1: no collateral effect of using all ventilators. Keep ICU capacity
@@ -39,7 +39,7 @@ def dydt(t, y, kIminus, kIplus, p_sick_to_recovered, p_d, p_dnv,
 
 
 def exceed_ventilator_capacity(t, y, kIminus,
-                               kIplus, p_sick_to_recovered, p_d, p_dnv,
+                               kIplus, p_r, p_d, p_dnv,
                                ventilator_capacity, p_h, p_v, ytot):
     ventilators_required = get_ventilators_required(y[sick_idx],
                                                     ytot,
@@ -85,14 +85,14 @@ def solve(kIplus,
     exceed_ventilator_capacity.terminal = False
     exceed_ventilator_capacity.direction = -1
 
-    p_sick_to_recovered = 1. - p_d
+    p_r = 1. - p_d
     times = np.linspace(*tspan, n_time_eval)
 
     run = True
     ts, sick, recovered, dead, hospitalized, ventilator, ventilators_required = [], [], [], [], [], [], []
 
     sol = solve_ivp(dydt, tspan, y0,
-                    args=(kIminus, kIplus, p_sick_to_recovered,
+                    args=(kIminus, kIplus, p_r,
                         p_d,
                         p_dnv,
                         ventilator_capacity,
