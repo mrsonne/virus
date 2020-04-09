@@ -101,7 +101,7 @@ def solve(y0,
     p_r = 1. - p_d
     times = np.linspace(*tspan, n_time_eval)
 
-    run = True
+    # Legacy from time where solve_ivp could be called multiple times with changing parameters
     ts, sick, recovered, dead, hospitalized, ventilator, ventilators_required = [], [], [], [], [], [], []
 
     sol = solve_ivp(dydt, tspan, y0,
