@@ -5,6 +5,14 @@ from .data import COUNTRYFUN_FOR_COUNTRYID
 from .solver import solve, get_kIplus
 from . import render
 
+def frc_to_pct(val):
+    return 100*val
+
+
+def dummy_transform(val):
+    return val
+
+
 def get_pars(virus_id, country_id, encounters_per_day, tspan):
 
 
@@ -62,9 +70,9 @@ def virus(virus_id, country_id, encounters_per_day=None,
 
 
 
-
-def contour(virus_id, country_id, encounters_per_day=None,
-                tspan=None):
+def contour(virus_id, country_id, par1, par2, 
+            encounters_per_day=None, tspan=None,
+            nsteps=25):
     """Grid
     """
 
@@ -75,30 +83,47 @@ def contour(virus_id, country_id, encounters_per_day=None,
                                 encounters_per_day,
                                 tspan)
 
+    parstr1 = par1['name']
+    parstr2 = par2['name']
+    try:
+        ftrans1 = par1["transform"]
+    except KeyError:
+        ftrans1 = dummy_transform
+
+    try:
+        ftrans2 = par2["transform"]
+    except KeyError:
+        ftrans2 = dummy_transform
+
     # Save nominel values
-    p_d_nom = pars['p_d'] 
-    tau_nom = pars['tau']
+    par1_nom = pars[parstr1]
+    par2_nom = pars[parstr2]
 
     n_sick_init = 5
     y0 = [population, n_sick_init, 0, 0]
 
-    deads = []
-    nsteps = 25
-    _ps_d = np.linspace(0.001, 0.01, nsteps)
-    _taus = np.linspace(6, 21, nsteps)
-    taus = []
-    ps_d = []
-    for i, (p_d, tau) in enumerate(itertools.product(_ps_d, _taus)):
-        pars['p_d'] = p_d
-        pars['tau'] = tau
+    
+    pars1 = np.linspace(par1['min'], par1['max'], nsteps)
+    pars2 = np.linspace(par2['min'], par2['max'], nsteps)
+    pars1_grid, pars2_grid = [], []
+    deads_grid = []
+    for i, (p1, p2) in enumerate(itertools.product(pars1, pars2)):
+        pars[parstr1] = p1
+        pars[parstr2] = p2
         # Use only last element of "deads" time series
         dead_count = solve(y0, infections_at_tau, **pars)[-2][-1]
-        deads.append(dead_count)
-        taus.append(tau)
-        ps_d.append(p_d)
+        deads_grid.append(dead_count)
+        pars1_grid.append(p1)
+        pars2_grid.append(p2)
 
     title = 'Deads ({}, $E$={}/day)'.format(virus_id, pars['E'])
-    render.cplot(np.array(ps_d)*100, np.array(taus), deads, p_d_nom*100, tau_nom, title=title)
+    render.cplot(ftrans1(np.array(pars1_grid)), 
+                 ftrans2(np.array(pars2_grid)),
+                 deads_grid, 
+                 ftrans1(par1_nom), 
+                 ftrans2(par2_nom), 
+                 par1["axlabel"], par2["axlabel"], 
+                 title=title)
 
 
 def ua(virus_id, country_id,

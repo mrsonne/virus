@@ -7,6 +7,7 @@ sick_idx = 1
 recovered_idx = 2
 dead_idx = 3
 
+
 def get_ventilators_required(ysick, ytot, p_h, p_v):
     hospitalized = ysick*ytot*p_h
     return hospitalized*p_v
