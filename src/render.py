@@ -22,7 +22,7 @@ def table_str(header, rows, title):
     return '\n'.join(lines)
 
 
-def par_table(population, n_sick_init, infections_at_tau, pars):
+def par_table(population, n_infected_init, infections_at_tau, pars):
 
     kIplus = get_kIplus(pars['E'], pars['p_t'])
     kIminus = get_kIminus(infections_at_tau, pars['tau'])
@@ -33,7 +33,7 @@ def par_table(population, n_sick_init, infections_at_tau, pars):
     ostrs.append(fstr.format('Encounters',  pars['E'], '/day'))
     ostrs.append(fstr.format('Population', population, ''))
     ostrs.append(fstr.format('Ventilators', pars['ventilator_capacity'], ''))
-    ostrs.append(fstr.format('Sick at day 0', n_sick_init, ''))
+    ostrs.append(fstr.format('Infected at day 0', n_infected_init, ''))
     ostrs.append(fstr.format('Infection time τ', pars['tau'], 'day'))
 
     fstr = '{:20} {:7.2f} {}'
@@ -58,7 +58,7 @@ def par_table(population, n_sick_init, infections_at_tau, pars):
     return '\n'.join(ostrs)
 
 
-def plot(times, sick, hospitalized,
+def plot(times, infected, hospitalized,
          ventilator, recovered, dead,
          ventilator_capacity=None,
          show_recovered=False,
@@ -67,13 +67,13 @@ def plot(times, sick, hospitalized,
     max_hospitalized = np.max(hospitalized)
     max_ventilator = np.max(ventilator)
     max_recovered = np.max(recovered)
-    max_sick = np.max(sick)
+    max_infected = np.max(infected)
     total_deaths = dead[-1]
 
     fig, ax = plt.subplots(figsize=(15, 8))
 
-    ax.plot(times, sick, 'b-', linewidth=2,
-            label='Sick (max={:5.1e})'.format(max_sick))
+    ax.plot(times, infected, 'b-', linewidth=2,
+            label='Infected (max={:5.1e})'.format(max_infected))
     ax.plot(times, hospitalized, 'b--', linewidth=2,
             label='Hospitalized (max={:5.1e})'.format(max_hospitalized))
     ax.plot(times, ventilator, 'b:', linewidth=2,

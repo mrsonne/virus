@@ -9,14 +9,14 @@ from src import run, render
 
 # How many people do you meet per day
 encounters_per_day = 50 # adjusted to fit flu data (adjusted with transmission probability)
-# encounters_per_day = 15 # damped sick count
+# encounters_per_day = 15 # damped infected count
 # encounters_per_day = 35 # flattened
 
-# encounters_per_day = None # constant sick count
+# encounters_per_day = None # constant infected count
 
 # run.virus('flu', 'denmark', encounters_per_day)
 # run.virus('covid19', 'denmark', None)
-# run.virus('covid19', 'denmark', encounters_per_day)
+run.virus('covid19', 'denmark', encounters_per_day)
 # run.virus('covid19', 'denmark', encounters_per_day, show_recovered=True, tspan=[0,320])
 
 # par1 = dict(axlabel=r'$p_{\rm{d}}$ (%)',

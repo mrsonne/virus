@@ -29,7 +29,7 @@ def get_pars(virus_id, country_id, encounters_per_day, tspan):
 
 
     if encounters_per_day is None:
-        pars['E'] = -kIminus/get_kIplus(1., p_t) # constant sick count
+        pars['E'] = -kIminus/get_kIplus(1., p_t) # gives constant infected count
     else:
         pars['E'] = encounters_per_day
 
@@ -53,12 +53,12 @@ def virus(virus_id, country_id, encounters_per_day=None,
                                 tspan)
 
 
-    n_sick_init = 5
+    n_infected_init = 5
     
-    print(render.par_table(population, n_sick_init, infections_at_tau, pars))
+    print(render.par_table(population, n_infected_init, infections_at_tau, pars))
 
-    # TODO: subtract n_sick_init
-    y0 = [population, n_sick_init, 0, 0]
+    # TODO: subtract n_infected_init
+    y0 = [population, n_infected_init, 0, 0]
 
     tss = solve(y0, infections_at_tau, **pars)
 
@@ -102,8 +102,8 @@ def contour(virus_id, country_id, par1, par2, response,
     par1_nom = pars[parstr1]
     par2_nom = pars[parstr2]
 
-    n_sick_init = 5
-    y0 = [population, n_sick_init, 0, 0]
+    n_infected_init = 5
+    y0 = [population, n_infected_init, 0, 0]
 
     
     pars1 = np.linspace(par1['min'], par1['max'], nsteps)
@@ -147,8 +147,8 @@ def ua(virus_id, country_id,
 
 
     # Reduce onset time
-    n_sick_init = 250
-    y0 = [population, n_sick_init, 0, 0]
+    n_infected_init = 250
+    y0 = [population, n_infected_init, 0, 0]
 
     xnames = r'$p_{\rm{h}}$ (%)', r'$\tau$ (days)', '$E$ (day\u207B\u00B9)'
     mean = [pars["p_h"] , pars["tau"], pars["E"]]
