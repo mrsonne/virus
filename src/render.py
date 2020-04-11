@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 from scipy.interpolate import griddata
+from scipy.stats import percentileofscore
 
 from .solver import get_kIplus, get_kIminus
 
@@ -128,7 +129,9 @@ def cplot(x, y, z, x_nom, y_nom, xlabel, ylabel, title=''):
     plt.show()
 
 
-def ua_plot(xvals, yvals, ypercentiles, xnames, yname, ventilator_capacity, pct_above_maxvent, n_bins=25, title=''):
+def ua_plot(xvals, yvals, xnames, yname,
+            plot_costimizer=None, response_ts=None, pars=None, # specify these together
+            n_bins=25, title=''):
     font_size = 16
     nattrs = xvals.shape[0]
     fig = plt.figure(figsize=(14, 7), constrained_layout=True)
@@ -150,21 +153,28 @@ def ua_plot(xvals, yvals, ypercentiles, xnames, yname, ventilator_capacity, pct_
     y_avg = np.average(yvals)
     y_p50 = np.percentile(yvals, 50)
     ax_big.hist(yvals, bins=n_bins, density=True, align='mid')
-    xlim = ax_big.get_xlim()
-    ax_big.axvspan(ventilator_capacity, xlim[1], alpha=0.3, color='tomato',
-                   label='Capacity exceeded (p={:<4.1f} %)'.format(pct_above_maxvent))
     ax_big.axvline(y_avg, color='black',
                    label='Average: {:<4.0f}'.format(y_avg))
-    # ax_big.axvline(y_p50, color='black',
-    #                label='Median: {:<4.0f}'.format(y_p50))
 
-    ax_big.set_xlim(xlim)
+    if plot_costimizer:
+        plot_costimizer(ax_big, yvals, response_ts, pars)
+    
     ax_big.set_xlabel(yname, fontsize=font_size)
     ax_big.set_ylabel('Density', fontsize=font_size)
     ax_big.legend(fontsize=font_size) 
     ax_big.tick_params(axis='x', labelsize=font_size)
     ax_big.tick_params(axis='y', labelsize=font_size)
     plt.show()
+
+
+def ua_add_ventilator_capacity(ax, response_trns, response_ts, pars):
+    """Customize UA plot for ventilator case
+    """
+    pct_above_maxvent = 100. - percentileofscore(response_trns, pars["ventilator_capacity"])
+    xlim = ax.get_xlim()
+    ax.axvspan(pars["ventilator_capacity"], xlim[1], alpha=0.3, color='tomato',
+               label='Capacity exceeded (p={:<4.1f} %)'.format(pct_above_maxvent))
+    ax.set_xlim(xlim)
 
 
 def ua_timeseries(times, values):

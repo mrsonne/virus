@@ -66,6 +66,7 @@ par3 = dict(axlabel='$E$ (day\u207B\u00B9)',
 response = dict(name='ventilators_required',
                 transform=run.get_max,
                 title="Ventilator required",
+                plot_costimizer=render.ua_add_ventilator_capacity
                )
 
 pars = par1, par2, par3

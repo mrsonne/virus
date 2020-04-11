@@ -145,6 +145,11 @@ def ua(virus_id, country_id,
 
     response_ftrans = response["transform"]
 
+    try:
+        plot_costimizer = response["plot_costimizer"]
+    except KeyError:
+        plot_costimizer = None
+
     # Reduce onset time by increasing initially infected individuals
     n_infected_init = 250
     y0 = [population, n_infected_init, 0, 0]
@@ -180,10 +185,10 @@ def ua(virus_id, country_id,
         xvals[i, :] = fun(xvals[i, :])
 
     # Plotting
-    percentiles = np.percentile(response_trns, q=(5, 50, 95))
-    pct_above_maxvent = 100. - percentileofscore(response_trns, pars["ventilator_capacity"])
     title = '{}, $E$={}'.format(virus_id, pars['E'])
-    render.ua_plot(xvals, response_trns, percentiles, xnames, yname,
-                   pars["ventilator_capacity"], pct_above_maxvent,
+    render.ua_plot(xvals, response_trns, xnames, yname,
+                   plot_costimizer=plot_costimizer,
+                   response_ts=response_ts,
+                   pars=pars,
                    title=title)
     return times, np.array(response_ts)
