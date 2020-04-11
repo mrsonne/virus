@@ -1,4 +1,7 @@
 from src import run, render
+import numpy as np
+# Seed so I dont have to change the text for each run
+np.random.seed(0)
 
 # TODO 
 # Notebook
@@ -16,7 +19,7 @@ encounters_per_day = 50 # adjusted to fit flu data (adjusted with transmission p
 
 # run.virus('flu', 'denmark', encounters_per_day)
 # run.virus('covid19', 'denmark', None)
-run.virus('covid19', 'denmark', encounters_per_day)
+# run.virus('covid19', 'denmark', encounters_per_day)
 # run.virus('covid19', 'denmark', encounters_per_day, show_recovered=True, tspan=[0,320])
 
 # par1 = dict(axlabel=r'$p_{\rm{d}}$ (%)',
@@ -40,7 +43,29 @@ run.virus('covid19', 'denmark', encounters_per_day)
 #             encounters_per_day, tspan=[0, 400])
 # run.contour('flu', 'denmark', encounters_per_day, tspan=[0, 400])
 
+    # xnames = r'$p_{\rm{h}}$ (%)', r'$\tau$ (days)', '$E$ (day\u207B\u00B9)'
+    # mean = [pars["p_h"] , pars["tau"], pars["E"]]
+    # cov = [[0.00001, 0. , 0], [0., 4., 0], [0., 0, 16]]
+
+par1 = dict(axlabel=r'$p_{\rm{h}}$ (%)',
+            name='p_h',
+            std=0.003,
+            transform=run.frc_to_pct
+            )
+
+par2 = dict(axlabel=r'$\tau$ (days)',
+            name='tau',
+            std=4.,
+            )
+
+par3 = dict(axlabel='$E$ (day\u207B\u00B9)',
+            name='E',
+            std=4.,
+            )
+
+pars = par1, par2, par3
 times, ventilator_tseries = run.ua('covid19', 'denmark', 30,
-                                    nsamples=500, tspan=[0, 400])
+                                    pars,
+                                    nsamples=100, tspan=[0, 400])
 
 render.ua_timeseries(times, ventilator_tseries.T)

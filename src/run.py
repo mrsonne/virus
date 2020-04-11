@@ -40,13 +40,12 @@ def get_pars(virus_id, country_id, encounters_per_day, tspan):
 
 
 def virus(virus_id, country_id, encounters_per_day=None,
-                show_recovered=False, tspan=None):
+                show_recovered=False, tspan=None,
+                infections_at_tau = 0.2):
     """
     Virus simulation
     """
 
-    # 80 % infections disappeared after infection time
-    infections_at_tau = 0.2
 
     pars, population = get_pars(virus_id, country_id,
                                 encounters_per_day,
@@ -75,12 +74,10 @@ def virus(virus_id, country_id, encounters_per_day=None,
 
 def contour(virus_id, country_id, par1, par2, response,
             encounters_per_day=None, tspan=None,
+            infections_at_tau=0.2,
             nsteps=25):
     """Grid
     """
-
-    # 80 % infections disappeared after infection time
-    infections_at_tau = 0.2
 
     pars, population = get_pars(virus_id, country_id,
                                 encounters_per_day,
@@ -130,50 +127,53 @@ def contour(virus_id, country_id, par1, par2, response,
 
 def ua(virus_id, country_id,
        encounters_per_day,
+       smplpars,
        nsamples=1000,
        tspan=None,
        infections_at_tau=0.2):
     """Uncertainty analysis
     """
-    # Seed so I dont have to change the text for each run
-    np.random.seed(0)
-
-    # 80 % infections disappeared after infection time
-    infections_at_tau = 0.2
-
     pars, population = get_pars(virus_id, country_id,
                                 encounters_per_day,
                                 tspan)
 
-
-    # Reduce onset time
+    # Reduce onset time by increasing initially infected individuals
     n_infected_init = 250
     y0 = [population, n_infected_init, 0, 0]
 
-    xnames = r'$p_{\rm{h}}$ (%)', r'$\tau$ (days)', '$E$ (day\u207B\u00B9)'
-    mean = [pars["p_h"] , pars["tau"], pars["E"]]
-    cov = [[0.00001, 0. , 0], [0., 4., 0], [0., 0, 16]]
+    # Prepare sampling
+    mean = [parobj["mean"] if "mean" in parobj else pars[parobj["name"]] for parobj in smplpars]
+    cov = np.diag([parobj['std']**2 for parobj in smplpars])
     xvals = np.random.multivariate_normal(mean, cov, nsamples).T
 
+    # Loop over parameter sets and solve
     ventilators = []
     ventilator_series = []
-    for p_h, tau, E in xvals.T:
-        pars['p_h'] = p_h
-        pars['tau'] = tau
-        pars['E'] = E
+    for parvals in xvals.T:
+
+        # Tranfer parameters
+        for parval, parobj in zip(parvals, smplpars):
+            pars[parobj["name"]] = parval
 
         tss = solve(y0, infections_at_tau, **pars)
         ventilators.append(max(tss["ventilators_required"]))
         ventilator_series.append(tss["ventilators_required"])
 
     times = tss["times"]
-
     yname = 'Ventilators required'
-    # Convert p_d to percent for plotting
-    xvals[0, :] *= 100
+    xnames = [parobj["axlabel"] for parobj in smplpars]
+
+    # Transform
+    ftrans = [parobj["transform"] if "transform" in parobj else dummy_transform 
+             for parobj in smplpars]
+    for i, fun in enumerate(ftrans):
+        xvals[i, :] = fun(xvals[i, :])
+
+    # Plotting
     percentiles = np.percentile(ventilators, q=(5, 50, 95))
     pct_above_maxvent = 100. - percentileofscore(ventilators, pars["ventilator_capacity"])
-    title = '{}, $E$={}'.format(virus_id, E)
-    render.ua_plot(xvals, ventilators, percentiles, xnames, yname, pars["ventilator_capacity"], pct_above_maxvent,
+    title = '{}, $E$={}'.format(virus_id, pars['E'])
+    render.ua_plot(xvals, ventilators, percentiles, xnames, yname,
+                   pars["ventilator_capacity"], pct_above_maxvent,
                    title=title)
     return times, np.array(ventilator_series)
