@@ -55,7 +55,7 @@ par1 = dict(axlabel=r'$p_{\rm{h}}$ (%)',
 
 par2 = dict(axlabel=r'$\tau$ (days)',
             name='tau',
-            std=4.,
+            std=2.,
             )
 
 par3 = dict(axlabel='$E$ (day\u207B\u00B9)',
@@ -63,9 +63,14 @@ par3 = dict(axlabel='$E$ (day\u207B\u00B9)',
             std=4.,
             )
 
+response = dict(name='ventilators_required',
+                transform=run.get_max,
+                title="Ventilator required",
+               )
+
 pars = par1, par2, par3
 times, ventilator_tseries = run.ua('covid19', 'denmark', 30,
-                                    pars,
+                                    pars, response,
                                     nsamples=100, tspan=[0, 400])
 
 render.ua_timeseries(times, ventilator_tseries.T)

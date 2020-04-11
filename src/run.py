@@ -17,6 +17,10 @@ def get_last(time_series):
     return time_series[-1]
 
 
+def get_max(time_series):
+    return np.max(time_series)
+
+
 def get_pars(virus_id, country_id, encounters_per_day, tspan):
 
 
@@ -95,6 +99,7 @@ def contour(virus_id, country_id, par1, par2, response,
     except KeyError:
         ftrans2 = dummy_transform
 
+
     # Save nominel values
     par1_nom = pars[parstr1]
     par2_nom = pars[parstr2]
@@ -127,7 +132,7 @@ def contour(virus_id, country_id, par1, par2, response,
 
 def ua(virus_id, country_id,
        encounters_per_day,
-       smplpars,
+       smplpars, response,
        nsamples=1000,
        tspan=None,
        infections_at_tau=0.2):
@@ -136,6 +141,9 @@ def ua(virus_id, country_id,
     pars, population = get_pars(virus_id, country_id,
                                 encounters_per_day,
                                 tspan)
+
+
+    response_ftrans = response["transform"]
 
     # Reduce onset time by increasing initially infected individuals
     n_infected_init = 250
@@ -146,9 +154,11 @@ def ua(virus_id, country_id,
     cov = np.diag([parobj['std']**2 for parobj in smplpars])
     xvals = np.random.multivariate_normal(mean, cov, nsamples).T
 
+    # Initialize transformed response and full time series
+    response_trns = []
+    response_ts = []
+
     # Loop over parameter sets and solve
-    ventilators = []
-    ventilator_series = []
     for parvals in xvals.T:
 
         # Tranfer parameters
@@ -156,11 +166,11 @@ def ua(virus_id, country_id,
             pars[parobj["name"]] = parval
 
         tss = solve(y0, infections_at_tau, **pars)
-        ventilators.append(max(tss["ventilators_required"]))
-        ventilator_series.append(tss["ventilators_required"])
+        response_trns.append(response_ftrans(tss[response["name"]]))
+        response_ts.append(tss[response["name"]])
 
     times = tss["times"]
-    yname = 'Ventilators required'
+    yname = response["title"]
     xnames = [parobj["axlabel"] for parobj in smplpars]
 
     # Transform
@@ -170,10 +180,10 @@ def ua(virus_id, country_id,
         xvals[i, :] = fun(xvals[i, :])
 
     # Plotting
-    percentiles = np.percentile(ventilators, q=(5, 50, 95))
-    pct_above_maxvent = 100. - percentileofscore(ventilators, pars["ventilator_capacity"])
+    percentiles = np.percentile(response_trns, q=(5, 50, 95))
+    pct_above_maxvent = 100. - percentileofscore(response_trns, pars["ventilator_capacity"])
     title = '{}, $E$={}'.format(virus_id, pars['E'])
-    render.ua_plot(xvals, ventilators, percentiles, xnames, yname,
+    render.ua_plot(xvals, response_trns, percentiles, xnames, yname,
                    pars["ventilator_capacity"], pct_above_maxvent,
                    title=title)
-    return times, np.array(ventilator_series)
+    return times, np.array(response_ts)
