@@ -42,7 +42,7 @@ def example():
 
     tspan = [0, 12.]
     t_eval = np.linspace(*tspan, 50)
-    y0 = [18,]
+    y0 = [1,]
 
     k = 5
     # scale to same mean
@@ -86,13 +86,13 @@ def example():
     exp_label = 'Exp(x; r={:4.1e})'.format(r_exp)
     erlang_label = 'Erlang(x; r={:4.1e},k={})'.format(r, k)
 
-    axs[pdf_idx].plot(t_eval, pdf, 'c-', label='PDF {}'.format(erlang_label))
-    axs[pdf_idx].plot(t_eval, pdf_exp, 'c--', label='PDF {}'.format(exp_label))
+    axs[pdf_idx].plot(t_eval, pdf_exp, 'k-', label='PDF {}'.format(exp_label))
+    axs[pdf_idx].plot(t_eval, pdf, 'k:', label='PDF {}'.format(erlang_label))
 
-    axs[survival_idx].plot(t_eval, survival_exp, 'm--', label='{}'.format(exp_label))
-    axs[survival_idx].plot(t_eval, survival, 'm-', label='{}'.format(erlang_label) )
+    axs[survival_idx].plot(t_eval, survival_exp, 'k-', label='{}'.format(exp_label))
+    axs[survival_idx].plot(t_eval, survival, 'k:', label='{}'.format(erlang_label) )
 
-    axs[survival_idx].plot(t_eval, np.sum(sol_lct.y, axis=0), marker='o', linewidth=0, markeredgecolor='c',
+    axs[survival_idx].plot(t_eval, np.sum(sol_lct.y, axis=0), marker='o', linewidth=0, markeredgecolor='k',
                 markerfacecolor='none', label=r'$I$')
 
     for istage in range(k):
@@ -121,8 +121,8 @@ def example():
 
 
     axs[-1].set_xlabel('x', fontsize=font_size)
-    axs[pdf_idx].set_ylabel('Density', fontsize=font_size)
-    axs[survival_idx].set_ylabel('Individuals', fontsize=font_size)
+    # axs[pdf_idx].set_ylabel('Density', fontsize=font_size)
+    # axs[survival_idx].set_ylabel('Individuals', fontsize=font_size)
 
 
     plt.show()
