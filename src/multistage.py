@@ -72,8 +72,8 @@ def example():
     pdf_idx = 0
     survival_idx = 1
 
-    exp_label = 'Exp(x; r={:4.1e})'.format(r_exp)
-    erlang_label = 'Erlang(x; r={:4.1e},k={})'.format(r, k)
+    exp_label = 'Exp(x; $\lambda$={:5.3f})'.format(r_exp)
+    erlang_label = 'Erlang(x; $\lambda$={:5.3f},$k$={})'.format(r, k)
 
     axs[pdf_idx].plot(t_eval, pdf_exp, 'k-', label='PDF {}'.format(exp_label))
     axs[pdf_idx].plot(t_eval, pdf, 'k:', label='PDF {}'.format(erlang_label))
