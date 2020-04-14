@@ -2,19 +2,20 @@ import numpy as np
 from scipy.integrate import solve_ivp
 
 # Indices in state array
-healthy_idx = 0
-infected_idx = 1
-recovered_idx = 2
-dead_idx = 3
+idx_for_state = {'healthy' : 0,
+                 'recovered': 1,
+                 'dead': 2,
+                 'infected': 3,
+                }
+nstates = len(idx_for_state)
 
 def get_y0(population, n_infected_init):
     """
     TODO: subtract n_infected_init
     """
-    nstates = 4
     y0 = [0]*nstates
-    y0[healthy_idx] = population
-    y0[infected_idx] = n_infected_init
+    y0[idx_for_state['healthy']] = population
+    y0[idx_for_state['infected']] = n_infected_init
     return y0
 
 
@@ -28,31 +29,31 @@ def dydt(t, y, kIminus, kIplus, p_r, p_d, p_dnv,
     """
     Model 1: no collateral effect of using all ventilators. Keep ICU capacity
     """
-    ventilators_required = get_ventilators_required(y[infected_idx],
+    dydt = [0]*nstates
+    ventilators_required = get_ventilators_required(y[idx_for_state['infected']],
                                                     ytot,
                                                     p_h,
                                                     p_v)
 
     ventilators_missing = ventilators_required - ventilator_capacity
     ventilators_missing = max(ventilators_missing, 0) / ytot
+    dIplus_dt = kIplus*y[idx_for_state['infected']]*y[idx_for_state['healthy']]
+    dydt[idx_for_state['healthy']] = -dIplus_dt
 
-    dIplus_dt = kIplus*y[infected_idx]*y[healthy_idx]
-    dhealthy_dt = -dIplus_dt
-
-    dIminus_dt = kIminus*( y[infected_idx] - ventilators_missing )
-    ddead_dt = -p_d * dIminus_dt
-    ddead_dt -= p_dnv * kIminus * ventilators_missing
-    drecovered_dt = -dIminus_dt - ddead_dt
+    dIminus_dt = kIminus*( y[idx_for_state['infected']] - ventilators_missing )
+    dydt[idx_for_state['dead']] = -p_d * dIminus_dt
+    dydt[idx_for_state['dead']] -= p_dnv * kIminus * ventilators_missing
+    dydt[idx_for_state['recovered']] = -dIminus_dt - dydt[idx_for_state['dead']]
     
-    dinfected_dt = dIplus_dt + dIminus_dt
-    return [dhealthy_dt, dinfected_dt, drecovered_dt, ddead_dt]
+    dydt[idx_for_state['infected']] = dIplus_dt + dIminus_dt
+    return dydt
 
 
 
 def exceed_ventilator_capacity(t, y, kIminus,
                                kIplus, p_r, p_d, p_dnv,
                                ventilator_capacity, p_h, p_v, ytot):
-    ventilators_required = get_ventilators_required(y[infected_idx],
+    ventilators_required = get_ventilators_required(y[idx_for_state['infected']],
                                                     ytot,
                                                     p_h,
                                                     p_v)
@@ -76,10 +77,10 @@ def get_kIminus(infections_at_tau, tau):
 
 
 def extract_time_series(sol, ytot, p_h, p_v, ventilator_capacity):
-    infected = sol.y[infected_idx]*ytot
-    recovered = sol.y[recovered_idx]*ytot
-    dead = sol.y[dead_idx]*ytot
-    hospitalized = sol.y[infected_idx]*ytot*p_h
+    infected = sol.y[idx_for_state['infected']]*ytot
+    recovered = sol.y[idx_for_state['recovered']]*ytot
+    dead = sol.y[idx_for_state['dead']]*ytot
+    hospitalized = sol.y[idx_for_state['infected']]*ytot*p_h
     ventilator = np.minimum(hospitalized*p_v, ventilator_capacity)
     ventilators_required = hospitalized*p_v
     return sol.t, infected, recovered, dead, hospitalized, ventilator, ventilators_required
