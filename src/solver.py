@@ -7,6 +7,16 @@ infected_idx = 1
 recovered_idx = 2
 dead_idx = 3
 
+def get_y0(population, n_infected_init):
+    """
+    TODO: subtract n_infected_init
+    """
+    nstates = 4
+    y0 = [0]*nstates
+    y0[healthy_idx] = population
+    y0[infected_idx] = n_infected_init
+    return y0
+
 
 def get_ventilators_required(yinfected, ytot, p_h, p_v):
     hospitalized = yinfected*ytot*p_h

@@ -2,7 +2,7 @@ import itertools
 import numpy as np
 from scipy.stats import percentileofscore
 from .data import COUNTRYFUN_FOR_COUNTRYID
-from .solver import solve, get_kIplus
+from .solver import solve, get_kIplus, get_y0
 from . import render
 
 def frc_to_pct(val):
@@ -60,8 +60,7 @@ def virus(virus_id, country_id, encounters_per_day=None,
     
     print(render.par_table(population, n_infected_init, infections_at_tau, pars))
 
-    # TODO: subtract n_infected_init
-    y0 = [population, n_infected_init, 0, 0]
+    y0 = get_y0(population, n_infected_init)
 
     tss = solve(y0, infections_at_tau, **pars)
 
@@ -105,7 +104,7 @@ def contour(virus_id, country_id, par1, par2, response,
     par2_nom = pars[parstr2]
 
     n_infected_init = 5
-    y0 = [population, n_infected_init, 0, 0]
+    y0 = get_y0(population, n_infected_init)
 
     
     pars1 = np.linspace(par1['min'], par1['max'], nsteps)
@@ -152,7 +151,7 @@ def ua(virus_id, country_id,
 
     # Reduce onset time by increasing initially infected individuals
     n_infected_init = 250
-    y0 = [population, n_infected_init, 0, 0]
+    y0 = get_y0(population, n_infected_init)
 
     # Prepare sampling
     mean = [parobj["mean"] if "mean" in parobj else pars[parobj["name"]] for parobj in smplpars]
