@@ -40,7 +40,7 @@ def par_table(population, n_infected_init, infections_at_tau, pars):
     fstr = '{:20} {:7.2f} {}'
     ostrs.append(fstr.format('k_I+', kIplus, '/day'))
     ostrs.append(fstr.format('k_I-', kIminus, '/day'))
-    ostrs.append(fstr.format('-k_I+ / k_I-', -kIplus / kIminus, ''))
+    ostrs.append(fstr.format('k_I+ / k_I-', kIplus / kIminus, ''))
 
     fstr = '{:20} {:7.1f} %'
     ostrs.append(fstr.format('Infections at τ (%)', infections_at_tau*100))
