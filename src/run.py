@@ -2,7 +2,7 @@ import itertools
 import numpy as np
 from scipy.stats import percentileofscore
 from .data import COUNTRYFUN_FOR_COUNTRYID
-from .solver import solve, get_kIplus, get_y0
+from .solver import solve, get_kIplus, get_y0, get_kIminus
 from . import render
 
 def frc_to_pct(val):
@@ -21,7 +21,7 @@ def get_max(time_series):
     return np.max(time_series)
 
 
-def get_pars(virus_id, country_id, encounters_per_day, tspan):
+def get_pars(virus_id, country_id, encounters_per_day, tspan, infections_at_tau):
 
 
     try:
@@ -33,7 +33,7 @@ def get_pars(virus_id, country_id, encounters_per_day, tspan):
 
 
     if encounters_per_day is None:
-        pars['E'] = -kIminus/get_kIplus(1., p_t) # gives constant infected count
+        pars['E'] = get_kIminus(infections_at_tau, pars['tau'])/get_kIplus(1., pars['p_t']) # gives constant infected count
     else:
         pars['E'] = encounters_per_day
 
@@ -45,7 +45,7 @@ def get_pars(virus_id, country_id, encounters_per_day, tspan):
 
 def virus(virus_id, country_id, encounters_per_day=None,
                 show_recovered=False, tspan=None,
-                infections_at_tau = 0.2):
+                infections_at_tau=0.2):
     """
     Virus simulation
     """
@@ -53,7 +53,7 @@ def virus(virus_id, country_id, encounters_per_day=None,
 
     pars, population = get_pars(virus_id, country_id,
                                 encounters_per_day,
-                                tspan)
+                                tspan, infections_at_tau)
 
 
     n_infected_init = 5
@@ -84,7 +84,7 @@ def contour(virus_id, country_id, par1, par2, response,
 
     pars, population = get_pars(virus_id, country_id,
                                 encounters_per_day,
-                                tspan)
+                                tspan, infections_at_tau)
 
     parstr1 = par1['name']
     parstr2 = par2['name']
@@ -139,7 +139,7 @@ def ua(virus_id, country_id,
     """
     pars, population = get_pars(virus_id, country_id,
                                 encounters_per_day,
-                                tspan)
+                                tspan, infections_at_tau)
 
 
     response_ftrans = response["transform"]
