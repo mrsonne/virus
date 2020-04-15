@@ -35,10 +35,27 @@ def get_y0(population, n_infected_init, infected_stages=1):
     return y0
 
 
-def get_Itot(y):
+def get_I_tot(y):
+    """
+    Sum infection stages to give total number of infected individuals
+    """
     idx_1 = idx_for_state['infected_1']
     return sum(y[idx_1 : idx_1 + N_INFECTED_STAGES])
 
+
+def get_last_iidx():
+    return idx_for_state['infected_1'] + N_INFECTED_STAGES - 1
+
+
+def get_first_iidx():
+    return idx_for_state['infected_1']
+
+
+def get_I_last(y):
+    """
+    Get last infection stage
+    """
+    return y[get_last_iidx()]
 
 
 def get_ventilators_required(yinfected, ytot, p_h, p_v):
@@ -52,7 +69,10 @@ def dydt(t, y, kIminus, kIplus, p_r, p_d, p_dnv,
     Model 1: no collateral effect of using all ventilators. Keep ICU capacity
     """
     dydt = [0]*nstates
-    ventilators_required = get_ventilators_required(y[idx_for_state['infected_1']],
+    I_tot = get_I_tot(y)
+    I_last = get_I_last(y)
+    # Ventilator can be required in all stages since the data that we have are pooled for all hospitalized
+    ventilators_required = get_ventilators_required(I_tot,
                                                     ytot,
                                                     p_h,
                                                     p_v)
@@ -61,16 +81,19 @@ def dydt(t, y, kIminus, kIplus, p_r, p_d, p_dnv,
     ventilators_missing = max(ventilators_missing, 0) / ytot
 
     # All stages can transmit virus
-    I_tot = get_Itot(y)
     dIplus_dt = kIplus*I_tot*y[idx_for_state['healthy']]
     dydt[idx_for_state['healthy']] = -dIplus_dt
 
-    dIminus_dt = kIminus*( y[idx_for_state['infected_1']] - ventilators_missing )
+    # You only die or recover from the last stage... A bit odd when ventilators_missing is calculated based on I_tot
+    # dIminus_dt is zero if more ventilators are required than there are individuals in the last stage... 
+    dIminus_dt = max(kIminus*( I_last - ventilators_missing ), 0)
     dydt[idx_for_state['dead']] = p_d * dIminus_dt
-    dydt[idx_for_state['dead']] += p_dnv * kIminus * ventilators_missing
+    # If I_last < ventilators_missing only I_last will die
+    dydt[idx_for_state['dead']] += p_dnv * kIminus * min(ventilators_missing, I_last)
     dydt[idx_for_state['recovered']] = dIminus_dt - dydt[idx_for_state['dead']]
     
-    dydt[idx_for_state['infected_1']] = dIplus_dt - dIminus_dt
+    dydt[get_first_iidx()] += dIplus_dt 
+    dydt[get_last_iidx()] -= dIminus_dt
     return dydt
 
 
@@ -102,7 +125,7 @@ def get_kIminus(infections_at_tau, tau):
 
 
 def extract_time_series(sol, ytot, p_h, p_v, ventilator_capacity):
-    infected = sol.y[idx_for_state['infected_1']]*ytot
+    infected = get_I_tot(sol.y)*ytot
     recovered = sol.y[idx_for_state['recovered']]*ytot
     dead = sol.y[idx_for_state['dead']]*ytot
     hospitalized = sol.y[idx_for_state['infected_1']]*ytot*p_h
