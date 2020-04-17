@@ -21,7 +21,7 @@ def get_max(time_series):
     return np.max(time_series)
 
 
-def get_pars(virus_id, country_id, encounters_per_day, tspan, infections_at_tau):
+def get_pars(virus_id, country_id, encounters_per_day, tspan, infections_at_tau, k):
 
 
     try:
@@ -31,7 +31,6 @@ def get_pars(virus_id, country_id, encounters_per_day, tspan, infections_at_tau)
         raise KeyError(err_str.format(country_id,
                                       ', '.join(list(COUNTRYFUN_FOR_COUNTRYID.keys()))))
 
-
     if encounters_per_day is None:
         pars['E'] = get_kIminus(infections_at_tau, pars['tau'])/get_kIplus(1., pars['p_t']) # gives constant infected count
     else:
@@ -40,12 +39,15 @@ def get_pars(virus_id, country_id, encounters_per_day, tspan, infections_at_tau)
     if tspan:
         pars['tspan'] = tspan
 
+    # TODO: this scales tau to same mean but not same time at 80 %
+    pars['tau'] /= k
+
     return pars, population
 
 
 def virus(virus_id, country_id, encounters_per_day=None,
                 show_recovered=False, tspan=None,
-                infections_at_tau=0.2):
+                infections_at_tau=0.2, k=1):
     """
     Virus simulation
     """
@@ -53,14 +55,18 @@ def virus(virus_id, country_id, encounters_per_day=None,
 
     pars, population = get_pars(virus_id, country_id,
                                 encounters_per_day,
-                                tspan, infections_at_tau)
+                                tspan, infections_at_tau, k)
 
 
-    n_infected_init = 5
+    # DEBUG: see pure survival function
+    n_infected_init = population
+
+    # real run
+    # n_infected_init = 5
     
-    print(render.par_table(population, n_infected_init, infections_at_tau, pars))
+    print(render.par_table(population, n_infected_init, infections_at_tau, k, pars))
 
-    y0 = get_y0(population, n_infected_init)
+    y0 = get_y0(population, n_infected_init, k)
 
     tss = solve(y0, infections_at_tau, **pars)
 
@@ -77,14 +83,14 @@ def virus(virus_id, country_id, encounters_per_day=None,
 
 def contour(virus_id, country_id, par1, par2, response,
             encounters_per_day=None, tspan=None,
-            infections_at_tau=0.2,
+            infections_at_tau=0.2, k=1,
             nsteps=25):
     """Grid
     """
 
     pars, population = get_pars(virus_id, country_id,
                                 encounters_per_day,
-                                tspan, infections_at_tau)
+                                tspan, infections_at_tau, k)
 
     parstr1 = par1['name']
     parstr2 = par2['name']
@@ -104,7 +110,7 @@ def contour(virus_id, country_id, par1, par2, response,
     par2_nom = pars[parstr2]
 
     n_infected_init = 5
-    y0 = get_y0(population, n_infected_init)
+    y0 = get_y0(population, n_infected_init, k)
 
     
     pars1 = np.linspace(par1['min'], par1['max'], nsteps)
@@ -134,12 +140,12 @@ def ua(virus_id, country_id,
        smplpars, response,
        nsamples=1000,
        tspan=None,
-       infections_at_tau=0.2):
+       infections_at_tau=0.2, k=1):
     """Uncertainty analysis
     """
     pars, population = get_pars(virus_id, country_id,
                                 encounters_per_day,
-                                tspan, infections_at_tau)
+                                tspan, infections_at_tau, k)
 
 
     response_ftrans = response["transform"]
@@ -151,7 +157,7 @@ def ua(virus_id, country_id,
 
     # Reduce onset time by increasing initially infected individuals
     n_infected_init = 250
-    y0 = get_y0(population, n_infected_init)
+    y0 = get_y0(population, n_infected_init, k)
 
     # Prepare sampling
     mean = [parobj["mean"] if "mean" in parobj else pars[parobj["name"]] for parobj in smplpars]

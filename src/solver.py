@@ -5,9 +5,9 @@ from scipy.integrate import solve_ivp
 idx_for_state = {'healthy' : 0,
                  'recovered': 1,
                  'dead': 2,
-                 'infected': 3, # holds the total number of infected individuals
+                 'infected_1': 3, # holds the total number of infected individuals
                 }
-nstates = len(idx_for_state)
+NSTATES = len(idx_for_state)
 N_INFECTED_STAGES = 1
 
 
@@ -15,22 +15,22 @@ def get_y0(population, n_infected_init, infected_stages=1):
     """
     TODO: subtract n_infected_init
     """
-    y0 = [0]*nstates
-    y0[idx_for_state['healthy']] = population
+    global NSTATES
+    NSTATES += infected_stages - 1
+    y0 = [0]*NSTATES
+    y0[idx_for_state['healthy']] = max(population - n_infected_init, 0)
 
     # Add stages to index mapper and state array
     global N_INFECTED_STAGES
     N_INFECTED_STAGES = infected_stages
     if infected_stages > 0:
-        for istage in range(infected_stages):
-            idx_for_state['infected_{}'.format(istage + 1)] = idx_for_state['infected'] + istage
-
-        del idx_for_state['infected']
-
+        idx_stage1 = idx_for_state['infected_1']
+        for istage in range(1, infected_stages):
+            idx_for_state['infected_{}'.format(istage + 1)] = idx_stage1 + istage
     else:
         raise BaseException('Number of infection stages musr be 1 or greater')
 
-    y0[idx_for_state['infected_1']] = n_infected_init
+    y0[idx_for_state['infected_1']] = min(n_infected_init, population)
 
     return y0
 
@@ -68,7 +68,7 @@ def dydt(t, y, kIminus, kIplus, p_r, p_d, p_dnv,
     """
     Model 1: no collateral effect of using all ventilators. Keep ICU capacity
     """
-    dydt = [0]*nstates
+    dydt = [0]*NSTATES
     I_tot = get_I_tot(y)
     I_last = get_I_last(y)
     # Ventilator can be required in all stages since the data that we have are pooled for all hospitalized
@@ -92,8 +92,20 @@ def dydt(t, y, kIminus, kIplus, p_r, p_d, p_dnv,
     dydt[idx_for_state['dead']] += p_dnv * kIminus * min(ventilators_missing, I_last)
     dydt[idx_for_state['recovered']] = dIminus_dt - dydt[idx_for_state['dead']]
     
-    dydt[get_first_iidx()] += dIplus_dt 
+    dydt[get_first_iidx()] += dIplus_dt
     dydt[get_last_iidx()] -= dIminus_dt
+
+    # print(list(range(get_first_iidx(), get_last_iidx())))
+    # print(list(range(get_first_iidx() + 1, get_last_iidx() + 1)))
+
+    # Exclude last since it's already handled
+    for iidx in range(get_first_iidx(), get_last_iidx()):
+        dydt[iidx] -= kIminus*y[iidx]
+
+    # Exclude first since it's already handled
+    for iidx in range(get_first_iidx() + 1, get_last_iidx() + 1):
+        dydt[iidx] += kIminus*y[iidx - 1]
+
     return dydt
 
 
@@ -101,7 +113,7 @@ def dydt(t, y, kIminus, kIplus, p_r, p_d, p_dnv,
 def exceed_ventilator_capacity(t, y, kIminus,
                                kIplus, p_r, p_d, p_dnv,
                                ventilator_capacity, p_h, p_v, ytot):
-    ventilators_required = get_ventilators_required(y[idx_for_state['infected_1']],
+    ventilators_required = get_ventilators_required(get_I_tot(y),
                                                     ytot,
                                                     p_h,
                                                     p_v)
@@ -128,7 +140,7 @@ def extract_time_series(sol, ytot, p_h, p_v, ventilator_capacity):
     infected = get_I_tot(sol.y)*ytot
     recovered = sol.y[idx_for_state['recovered']]*ytot
     dead = sol.y[idx_for_state['dead']]*ytot
-    hospitalized = sol.y[idx_for_state['infected_1']]*ytot*p_h
+    hospitalized = infected*p_h
     ventilator = np.minimum(hospitalized*p_v, ventilator_capacity)
     ventilators_required = hospitalized*p_v
     return sol.t, infected, recovered, dead, hospitalized, ventilator, ventilators_required
@@ -143,7 +155,7 @@ def solve(y0,
           p_dnv,
           p_h,
           p_v,
-          tspan, 
+          tspan,
           ventilator_capacity,
           n_time_eval=1000):
 
