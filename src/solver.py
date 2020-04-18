@@ -1,5 +1,8 @@
 import numpy as np
 from scipy.integrate import solve_ivp
+from scipy import optimize
+from scipy.stats import erlang
+
 
 # Indices in state array
 idx_for_state = {'healthy' : 0,
@@ -131,9 +134,25 @@ def get_kIplus(encounters_per_day, p_t):
     return 2*encounters_per_day*p_t
 
 
+def obj(rate, tau, sf_at_tau, k):
+    return erlang.sf(tau, a=k, scale=1./rate) - sf_at_tau
 
-def get_kIminus(infections_at_tau, tau):
-    return -np.log(infections_at_tau)/tau
+
+def get_rate_Iminus(tau, sf_at_tau, k=1):
+    """
+    Determine the rate based on the survival function at tau
+    """
+    r_exp = -np.log(sf_at_tau) / tau
+    if k == 1:
+        return r_exp
+    else:
+        r_est = r_exp*k
+        sol = optimize.root_scalar(obj, bracket=[1e-9, 5*r_est],
+                                   x0=r_est, 
+                                   args=(tau, sf_at_tau, k),
+                                   method='brentq')
+        return sol.root
+
 
 
 def extract_time_series(sol, ytot, p_h, p_v, ventilator_capacity):
@@ -160,7 +179,7 @@ def solve(y0,
           n_time_eval=1000):
 
     kIplus = get_kIplus(E, p_t)
-    kIminus = get_kIminus(infections_at_tau, tau)
+    kIminus = get_rate_Iminus(tau, infections_at_tau, N_INFECTED_STAGES)
 
     ytot = np.sum( y0 )
 

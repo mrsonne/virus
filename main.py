@@ -1,4 +1,4 @@
-from src import run, render
+from src import run, render, multistage, solver
 import numpy as np
 # Seed so I dont have to change the text for each run
 np.random.seed(0)
@@ -17,10 +17,10 @@ encounters_per_day = 50 # adjusted to fit flu data (adjusted with transmission p
 
 # encounters_per_day = None # constant infected count
 
-run.virus('flu', 'denmark', encounters_per_day)
+# run.virus('flu', 'denmark', encounters_per_day, k=1)
 # run.virus('flu', 'usa', encounters_per_day)
 # run.virus('covid19', 'denmark', None)
-# run.virus('covid19', 'denmark', encounters_per_day)
+run.virus('covid19', 'denmark', encounters_per_day, k=1)
 # run.virus('covid19', 'denmark', encounters_per_day, show_recovered=True, tspan=[0,320])
 
 # par1 = dict(axlabel=r'$p_{\rm{d}}$ (%)',
@@ -76,3 +76,21 @@ run.virus('flu', 'denmark', encounters_per_day)
 #                                     nsamples=100, tspan=[0, 400])
 
 # render.ua_timeseries(times, ventilator_tseries.T)
+
+
+# def multistage_ex():
+#     # multistage example
+#     k = 5
+#     scale = 1.5
+#     rate = 1./scale
+#     # Adjust exp rate to same mean as Erlang
+#     rate_exp = rate/k 
+#     multistage.example(rate, rate_exp, k)
+
+#     # Adjust rate to get same survival function value (0.2) after two weeks
+#     rate_exp = solver.get_rate_Iminus(14, 0.2)
+#     rate = solver.get_rate_Iminus(14, 0.2, k=k)
+#     multistage.example(rate, rate_exp, k)
+
+
+# multistage_ex()

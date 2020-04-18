@@ -2,7 +2,7 @@ import itertools
 import numpy as np
 from scipy.stats import percentileofscore
 from .data import COUNTRYFUN_FOR_COUNTRYID
-from .solver import solve, get_kIplus, get_y0, get_kIminus
+from .solver import solve, get_kIplus, get_y0, get_rate_Iminus
 from . import render
 
 def frc_to_pct(val):
@@ -32,15 +32,12 @@ def get_pars(virus_id, country_id, encounters_per_day, tspan, infections_at_tau,
                                       ', '.join(list(COUNTRYFUN_FOR_COUNTRYID.keys()))))
 
     if encounters_per_day is None:
-        pars['E'] = get_kIminus(infections_at_tau, pars['tau'])/get_kIplus(1., pars['p_t']) # gives constant infected count
+        pars['E'] = get_rate_Iminus(pars['tau'], infections_at_tau, k)/get_kIplus(1., pars['p_t']) # gives constant infected count
     else:
         pars['E'] = encounters_per_day
 
     if tspan:
         pars['tspan'] = tspan
-
-    # TODO: this scales tau to same mean but not same time at 80 %
-    pars['tau'] /= k
 
     return pars, population
 
@@ -58,11 +55,11 @@ def virus(virus_id, country_id, encounters_per_day=None,
                                 tspan, infections_at_tau, k)
 
 
-    # DEBUG: see pure survival function
-    n_infected_init = population
+    n_infected_init = 5
 
-    # real run
-    # n_infected_init = 5
+    # DEBUG: see pure survival function
+    # n_infected_init = population
+
     
     print(render.par_table(population, n_infected_init, infections_at_tau, k, pars))
 

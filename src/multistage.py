@@ -44,41 +44,40 @@ def dydt_lct(t, y, r, k):
     return dydt
 
 
-def example():
-    tspan = [0, 12.]
+def example(rate, rate_exp, k):
+    tspan = [0, 16.]
     t_eval = np.linspace(*tspan, 35)
     y0 = [1,]
 
-    k = 5
+    # k = 5
     # scale to same mean
-    scale = 1.5
-    r = 1./scale
+    # scale = 1.5
+    # r = 1./scale
+
 
     # Exp
-    r_exp = r/k
-    r_exp
-    pdf_exp = expon.pdf(t_eval, scale=1./r_exp)
-    survival_exp = y0[0]*expon.sf(t_eval, scale=1./r_exp)
+    pdf_exp = expon.pdf(t_eval, scale=1./rate_exp)
+    survival_exp = y0[0]*expon.sf(t_eval, scale=1./rate_exp)
 
     y0_lct = np.zeros(k)
     y0_lct[0] = y0[0]
-    sol_lct = solve_ivp(dydt_lct, tspan, y0_lct, t_eval=t_eval, args=(r, k), method='Radau')
+    sol_lct = solve_ivp(dydt_lct, tspan, y0_lct, t_eval=t_eval, args=(rate, k), method='Radau')
 
-    # print('mean exp: ', 1/r_exp)
-    # print('rate erlang: ', r)
-    # print('scale erlang: ', 1./r)
-    # print('mean erlang: ', k/r)
+    # print('mean exp: ', 1/rate_exp)
+    # print('rate erlang: ', rate)
+    # print('scale erlang: ', 1./rate)
+    print('mean erlang: ', k/rate)
 
-    pdf_erlang = erlang.pdf(t_eval, a=k, scale=1./r)
-    survival_erlang = y0[0]*erlang.sf(t_eval, a=k, scale=1./r)
+    pdf_erlang = erlang.pdf(t_eval, a=k, scale=1./rate)
+    survival_erlang = y0[0]*erlang.sf(t_eval, a=k, scale=1./rate)
 
     fig, axs = plt.subplots(2, 1, figsize=(15, 15), sharex=True)
 
     pdf_idx = 0
     survival_idx = 1
 
-    exp_label = 'Exp(x; $\lambda$={:5.3f})'.format(r_exp)
-    erlang_label = 'Erlang(x; $\lambda$={:5.3f},$k$={})'.format(r, k)
+    exp_label = 'Exp(x; $\lambda$={:5.3f})'.format(rate_exp)
+    erlang_label = 'Erlang(x; $\lambda$={:5.3f},$k$={})'.format(rate, k)
 
     axs[pdf_idx].plot(t_eval, pdf_exp, 'k-', label='PDF {}'.format(exp_label))
     axs[pdf_idx].plot(t_eval, pdf_erlang, 'k--', label='PDF {}'.format(erlang_label))
@@ -105,7 +104,3 @@ def example():
 
     axs[-1].set_xlabel('x', fontsize=font_size)
     plt.show()
-
-
-if __name__ == '__main__':
-    example()
