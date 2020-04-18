@@ -33,7 +33,7 @@ def par_table(population, n_infected_init, infections_at_tau, k, pars):
     ostrs = []
     ostrs.append(fstr.format('Encounters',  pars['E'], '/day'))
     ostrs.append(fstr.format('Population', population, ''))
-    ostrs.append(fstr.format('Ventilators', pars['ventilator_capacity'], ''))
+    ostrs.append(fstr.format('Ventilator capacity', pars['ventilator_capacity'], ''))
     ostrs.append(fstr.format('Infected at day 0', n_infected_init, ''))
     ostrs.append(fstr.format('Infection time (τ)', pars['tau'], 'day'))
     ostrs.append(fstr.format('Infections at τ', infections_at_tau*100, '%'))
@@ -41,9 +41,9 @@ def par_table(population, n_infected_init, infections_at_tau, k, pars):
 
     fstr = '{:25} {:8.3f} {}'
     ostrs.append(fstr.format('Mean infection time', k/kIminus, 'day'))
-    ostrs.append(fstr.format('k_I+', kIplus, '/day'))
-    ostrs.append(fstr.format('k_I-', kIminus, '/day'))
-    ostrs.append(fstr.format('k_I+ / k_I-', kIplus / kIminus, ''))
+    ostrs.append(fstr.format('r_I+', kIplus, '/day'))
+    ostrs.append(fstr.format('r_I-', kIminus, '/day'))
+    ostrs.append(fstr.format('r_I+ / r_I-', kIplus / kIminus, ''))
 
     fstr = '{:25} {:7.1f} %'
     ostrs.append(fstr.format('p_t', pars['p_t']*100))
