@@ -1,4 +1,5 @@
 import matplotlib.pyplot as plt
+import matplotlib.colors as colors
 import numpy as np
 from scipy.interpolate import griddata
 from scipy.stats import percentileofscore
@@ -180,20 +181,45 @@ def ua_add_ventilator_capacity(ax, response_trns, response_ts, pars):
 
 
 def ua_timeseries(times, values):
+
+    # This dictionary defines the colormap
+    cdict = {'red':  ((0.0, 0.0, 0.0),   # no red at 0
+                    (0.5, 1.0, 1.0),   # orange at 0.5
+                    (1.0, 1.0, 1.0)),  # set to 0.8 so its not too bright at 1
+
+            'green': ((0.0, 0.8, 0.8),   # set to 0.8 so its not too bright at 0
+                    (0.5, 0.4, 0.4),   # orange at 0.5
+                    (1.0, 0.0, 0.0)),  # no green at 1
+
+            'blue':  ((0.0, 0.0, 0.0),   # no blue at 0
+                    (0.5, 0.0, 0.0),   # orange at 0.5
+                    (1.0, 0.0, 0.0))   # no blue at 1
+        }
+
+    cmap = colors.LinearSegmentedColormap('my_colormap', cdict, 100)
+
     font_size = 16
     fig, ax = plt.subplots(figsize=(15, 8))
     avg = np.average(values, axis=1)
     avg_max = max(avg)
+    pvals = np.linspace(0, 100, 6)
+    percentiles = np.percentile(values, pvals, axis=1)
     p50 = np.percentile(values, 50, axis=1)
-    p95 = np.percentile(values, 95, axis=1)
-    p05 = np.percentile(values, 5, axis=1)
-    ax.plot(times, values, color="black", alpha=0.1, linewidth=2)
-    ax.plot(times, values[:, 0], color="seagreen", alpha=0.2, linewidth=2, label='Samples')
-    ax.fill_between(times, p05, p95, color="orange", alpha=0.5, linewidth=1, label='CI 90 %', zorder=9999)
-    # ax.plot(times, p50, color="black", alpha=1, linewidth=2, label='Median', zorder=10000)
-    ax.plot(times, avg, color="black", alpha=1, linewidth=2,
-            label='Average (max={:5.1e})'.format(avg_max), zorder=10000)
+    p50_max = max(p50)
+    for lower, upper, p_low, p_up in zip(percentiles[:-1], percentiles[1:], pvals[:-1], pvals[1:]):
+        p_mean = 0.5*(p_low + p_up)
+        ax.fill_between(times, lower, upper, color=cmap(p_mean/100), alpha=0.5, linewidth=2, zorder=10000, label='Percentiles {:.0f}-{:.0f}'.format(p_low, p_up))
+
+    # Samples
+    ax.plot(times, values, color="gray", alpha=0.1, linewidth=1)
+    # make a single label
+    ax.plot(times, values[:, 0], color="gray", alpha=0.2, linewidth=1, label='Samples') 
+
+    ax.plot(times, p50, color="black", alpha=1, linewidth=2, label='Median (max={:5.1e})'.format(avg_max), zorder=10000)
+    # ax.plot(times, avg, color="black", alpha=1, linewidth=2,
+    #         label='Average (max={:5.1e})'.format(avg_max), zorder=10000)
     ax.legend(fontsize=font_size, loc='upper left')
+    ax.set_ylim(0, ax.get_ylim()[1])
     ax.set_xlabel('Time (day)', fontsize=font_size)
     ax.set_ylabel('Ventilators required', fontsize=font_size)
     ax.tick_params(axis='x', labelsize=font_size)
