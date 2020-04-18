@@ -208,7 +208,7 @@ def ua_timeseries(times, values):
     p50_max = max(p50)
     for lower, upper, p_low, p_up in zip(percentiles[:-1], percentiles[1:], pvals[:-1], pvals[1:]):
         p_mean = 0.5*(p_low + p_up)
-        ax.fill_between(times, lower, upper, color=cmap(p_mean/100), alpha=0.5, linewidth=2, zorder=10000, label='Percentiles {:.0f}-{:.0f}'.format(p_low, p_up))
+        ax.fill_between(times, lower, upper, color=cmap(p_mean/100), alpha=0.5, linewidth=2, zorder=10000, label='Percentile {:.0f}-{:.0f}'.format(p_low, p_up))
 
     # Samples
     ax.plot(times, values, color="gray", alpha=0.1, linewidth=1)
