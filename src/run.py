@@ -165,6 +165,8 @@ def ua(virus_id, country_id,
     response_trns = []
     response_ts = []
 
+    n_time_eval = 1000
+
     # Loop over parameter sets and solve
     for parvals in xvals.T:
 
@@ -172,7 +174,8 @@ def ua(virus_id, country_id,
         for parval, parobj in zip(parvals, smplpars):
             pars[parobj["name"]] = parval
 
-        tss = solve(y0, infections_at_tau, **pars)
+        tss = solve(y0, infections_at_tau, **pars, n_time_eval=n_time_eval)
+        if len(tss[response["name"]]) < n_time_eval: continue
         response_trns.append(response_ftrans(tss[response["name"]]))
         response_ts.append(tss[response["name"]])
 
@@ -193,4 +196,4 @@ def ua(virus_id, country_id,
                    response_ts=response_ts,
                    pars=pars,
                    title=title)
-    return times, np.array(response_ts)
+    return times, np.stack(response_ts, axis=0)
