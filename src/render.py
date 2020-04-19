@@ -156,7 +156,9 @@ def ua_plot(xvals, yvals, xnames, yname,
     y_avg = np.average(yvals)
     y_p50 = np.percentile(yvals, 50)
     ax_big.hist(yvals, bins=n_bins, density=True, align='mid')
-    ax_big.axvline(y_avg, color='black',
+    ax_big.axvline(y_p50, color='black', linestyle='-',
+                   label='Median: {:<4.0f}'.format(y_p50))
+    ax_big.axvline(y_avg, color='black', linestyle=':',
                    label='Average: {:<4.0f}'.format(y_avg))
 
     if plot_costimizer:
@@ -217,9 +219,10 @@ def ua_timeseries(times, values):
     # make a single label
     ax.plot(times, values[:, 0], color="gray", alpha=0.2, linewidth=1, label='Samples') 
 
-    ax.plot(times, p50, color="black", alpha=1, linewidth=2, label='Median (max={:5.1e})'.format(avg_max), zorder=10000)
-    # ax.plot(times, avg, color="black", alpha=1, linewidth=2,
-    #         label='Average (max={:5.1e})'.format(avg_max), zorder=10000)
+    ax.plot(times, p50, color="black", alpha=1, linewidth=2,
+            label='Median (max={:5.1e})'.format(p50_max), zorder=10000)
+    ax.plot(times, avg, color="black", linestyle=':', alpha=1, linewidth=2,
+            label='Average (max={:5.1e})'.format(avg_max), zorder=10000)
     ax.legend(fontsize=font_size, loc='upper right')
     ylim_max = np.max(percentiles[-1])
     ax.set_xlim(0, ax.get_xlim()[1])
