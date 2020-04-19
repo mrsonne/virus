@@ -161,13 +161,20 @@ def ua_plot(xvals, yvals, xnames, yname,
         _threshold = np.max(yvals) 
     else:
         _threshold = threshold
+        pct_above_threshold = 100. - percentileofscore(yvals, threshold)
+        label = 'Capacity exceeded (p={:<4.1f} %)'.format(pct_above_threshold)
 
     width = float(_threshold)/n_zero_to_threshold
     bins = np.arange(0, np.max(yvals), step=width)
     hist_values, bin_edges = np.histogram(yvals, bins=bins, density=True)
     width = bin_edges[1] - bin_edges[0]
-    ax_big.bar(bin_edges[:-1][:n_zero_to_threshold], hist_values[:n_zero_to_threshold], width=width, align='edge')
-    ax_big.bar(bin_edges[:-1][n_zero_to_threshold:], hist_values[n_zero_to_threshold:], color='tomato', width=width, align='edge')
+    ax_big.bar(bin_edges[:-1][:n_zero_to_threshold], hist_values[:n_zero_to_threshold],
+               width=width, align='edge', label='Capacity OK')
+
+    if threshold is not None:
+        ax_big.bar(bin_edges[:-1][n_zero_to_threshold:], hist_values[n_zero_to_threshold:],
+                color='tomato', width=width, align='edge', label=label)
+
     ax_big.axvline(y_p50, color='black', linestyle='-',
                    label='Median: {:<4.0f}'.format(y_p50))
     ax_big.axvline(y_avg, color='black', linestyle=':',
