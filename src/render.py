@@ -133,8 +133,8 @@ def cplot(x, y, z, x_nom, y_nom, xlabel, ylabel, title=''):
 
 
 def ua_plot(xvals, yvals, xnames, yname,
-            plot_costimizer=None, response_ts=None, pars=None, # specify these together
-            n_bins=25, title=''):
+            response_ts=None, pars=None, # specify these together
+            n_bins=25, title='', threshold=None):
     font_size = 16
     nattrs = xvals.shape[0]
     fig = plt.figure(figsize=(14, 7), constrained_layout=True)
@@ -155,16 +155,23 @@ def ua_plot(xvals, yvals, xnames, yname,
 
     y_avg = np.average(yvals)
     y_p50 = np.percentile(yvals, 50)
-    hist_values, bin_edges = np.histogram(yvals, bins=n_bins, density=True)
+    n_zero_to_threshold = 20
+
+    if threshold is None:
+        _threshold = np.max(yvals) 
+    else:
+        _threshold = threshold
+
+    width = float(_threshold)/n_zero_to_threshold
+    bins = np.arange(0, np.max(yvals), step=width)
+    hist_values, bin_edges = np.histogram(yvals, bins=bins, density=True)
     width = bin_edges[1] - bin_edges[0]
-    ax_big.bar(bin_edges[:-1], hist_values, width=width, align='edge')
+    ax_big.bar(bin_edges[:-1][:n_zero_to_threshold], hist_values[:n_zero_to_threshold], width=width, align='edge')
+    ax_big.bar(bin_edges[:-1][n_zero_to_threshold:], hist_values[n_zero_to_threshold:], color='tomato', width=width, align='edge')
     ax_big.axvline(y_p50, color='black', linestyle='-',
                    label='Median: {:<4.0f}'.format(y_p50))
     ax_big.axvline(y_avg, color='black', linestyle=':',
                    label='Average: {:<4.0f}'.format(y_avg))
-
-    if plot_costimizer:
-        plot_costimizer(ax_big, yvals, response_ts, pars)
     
     ax_big.set_xlabel(yname, fontsize=font_size)
     ax_big.set_ylabel('Density', fontsize=font_size)
@@ -172,16 +179,6 @@ def ua_plot(xvals, yvals, xnames, yname,
     ax_big.tick_params(axis='x', labelsize=font_size)
     ax_big.tick_params(axis='y', labelsize=font_size)
     plt.show()
-
-
-def ua_add_ventilator_capacity(ax, response_trns, response_ts, pars):
-    """Customize UA plot for ventilator case
-    """
-    pct_above_maxvent = 100. - percentileofscore(response_trns, pars["ventilator_capacity"])
-    xlim = ax.get_xlim()
-    ax.axvspan(pars["ventilator_capacity"], xlim[1], alpha=0.3, color='tomato',
-               label='Capacity exceeded (p={:<4.1f} %)'.format(pct_above_maxvent))
-    ax.set_xlim(xlim)
 
 
 def ua_timeseries(times, values):

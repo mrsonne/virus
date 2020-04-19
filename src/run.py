@@ -147,11 +147,6 @@ def ua(virus_id, country_id,
 
     response_ftrans = response["transform"]
 
-    try:
-        plot_costimizer = response["plot_costimizer"]
-    except KeyError:
-        plot_costimizer = None
-
     # Reduce onset time by increasing initially infected individuals
     n_infected_init = 250
     y0 = get_y0(population, n_infected_init, k)
@@ -192,8 +187,8 @@ def ua(virus_id, country_id,
     # Plotting
     title = '{}, $E$={}'.format(virus_id, pars['E'])
     render.ua_plot(xvals, response_trns, xnames, yname,
-                   plot_costimizer=plot_costimizer,
                    response_ts=response_ts,
                    pars=pars,
-                   title=title)
+                   title=title,
+                   threshold=pars["ventilator_capacity"])
     return times, np.stack(response_ts, axis=0)
