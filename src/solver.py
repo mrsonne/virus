@@ -89,14 +89,16 @@ def dydt(t, y, kIminus, kIplus, p_r, p_d, p_dnv,
 
     # You only die or recover from the last stage... A bit odd when ventilators_missing is calculated based on I_tot
     # dIminus_dt is zero if more ventilators are required than there are individuals in the last stage... 
-    dIminus_dt = max(kIminus*( I_last - ventilators_missing ), 0)
+    dIminus_dt = kIminus*( max(I_last - ventilators_missing, 0 ))
     dydt[idx_for_state['dead']] = p_d * dIminus_dt
     # If I_last < ventilators_missing only I_last will die
     dydt[idx_for_state['dead']] += p_dnv * kIminus * min(ventilators_missing, I_last)
+    # dydt[idx_for_state['dead']] += p_dnv * kIminus * ventilators_missing
     dydt[idx_for_state['recovered']] = dIminus_dt - dydt[idx_for_state['dead']]
     
     dydt[get_first_iidx()] += dIplus_dt
-    dydt[get_last_iidx()] -= dIminus_dt
+    # dydt[get_last_iidx()] -=  dIminus_dt
+    dydt[get_last_iidx()] -=  dydt[idx_for_state['dead']] +  dydt[idx_for_state['recovered']]
 
     # print(list(range(get_first_iidx(), get_last_iidx())))
     # print(list(range(get_first_iidx() + 1, get_last_iidx() + 1)))
@@ -203,8 +205,12 @@ def solve(y0,
                         p_v, ytot),
                     t_eval=times,
                     method='Radau',
+                    rtol=1e-6, # tighten tolerance to avoid negative population count
                     events=exceed_ventilator_capacity
                 )
+
+    # Check closure
+    # print('Closure OK', np.allclose(np.sum(sol.y, axis=0) - 1, 0))
 
     (_ts, _infected, _recovered,
     _dead, _hospitalized, _ventilator,
