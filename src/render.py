@@ -30,23 +30,23 @@ def par_table(population, n_infected_init, infections_at_tau, k, pars):
     kIminus = get_rate_Iminus(pars['tau'], infections_at_tau, k)
 
 
-    fstr = '{:25} {:7} {}'
+    fstr = '{:18} {:7} {}'
     ostrs = []
     ostrs.append(fstr.format('Encounters',  pars['E'], '/day'))
     ostrs.append(fstr.format('Population', population, ''))
-    ostrs.append(fstr.format('Ventilator capacity', pars['ventilator_capacity'], ''))
+    ostrs.append(fstr.format('Vent. capacity', pars['ventilator_capacity'], ''))
     ostrs.append(fstr.format('Infected at day 0', n_infected_init, ''))
-    ostrs.append(fstr.format('Infection time (τ)', pars['tau'], 'day'))
-    ostrs.append(fstr.format('Infections at τ', infections_at_tau*100, '%'))
-    ostrs.append(fstr.format('Infection stages (k)', k, ''))
+    ostrs.append(fstr.format('Infctn time (τ)', pars['tau'], 'day'))
+    ostrs.append(fstr.format('Infctns at τ', infections_at_tau*100, '%'))
+    ostrs.append(fstr.format('Infctn stages (k)', k, ''))
 
-    fstr = '{:25} {:8.3f} {}'
-    ostrs.append(fstr.format('Mean infection time', k/kIminus, 'day'))
+    fstr = '{:18} {:8.3f} {}'
+    ostrs.append(fstr.format('Mean infctn time', k/kIminus, 'day'))
     ostrs.append(fstr.format('r_I+', kIplus, '/day'))
     ostrs.append(fstr.format('r_I-', kIminus, '/day'))
     ostrs.append(fstr.format('r_I+ / r_I-', kIplus / kIminus, ''))
 
-    fstr = '{:25} {:7.1f} %'
+    fstr = '{:18} {:8.1f} %'
     ostrs.append(fstr.format('p_t', pars['p_t']*100))
     ostrs.append(fstr.format('p_h', pars['p_h']*100))
     ostrs.append(fstr.format('p_d', pars['p_d']*100))
@@ -63,13 +63,13 @@ def par_table(population, n_infected_init, infections_at_tau, k, pars):
 
 
 def plot(times, infected, hospitalized,
-         ventilator, recovered, dead,
+         ventilated, recovered, dead,
          ventilator_capacity=None,
          show_recovered=False,
          title=''):
 
     max_hospitalized = np.max(hospitalized)
-    max_ventilator = np.max(ventilator)
+    max_ventilated = np.max(ventilated)
     max_recovered = np.max(recovered)
     max_infected = np.max(infected)
     total_deaths = dead[-1]
@@ -80,8 +80,8 @@ def plot(times, infected, hospitalized,
             label='Infected (max={:5.1e})'.format(max_infected))
     ax.plot(times, hospitalized, 'b--', linewidth=2,
             label='Hospitalized (max={:5.1e})'.format(max_hospitalized))
-    ax.plot(times, ventilator, 'b:', linewidth=2,
-            label='Ventilator (max={:5.1e})'.format(max_ventilator))
+    ax.plot(times, ventilated, 'b:', linewidth=2,
+            label='Ventilated (max={:5.1e})'.format(max_ventilated))
     ax.plot(times, dead, 'r-', linewidth=2,
             label='Dead (total={:5.1e})'.format(total_deaths))
 
