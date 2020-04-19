@@ -155,7 +155,9 @@ def ua_plot(xvals, yvals, xnames, yname,
 
     y_avg = np.average(yvals)
     y_p50 = np.percentile(yvals, 50)
-    ax_big.hist(yvals, bins=n_bins, density=True, align='mid')
+    hist_values, bin_edges = np.histogram(yvals, bins=n_bins, density=True)
+    width = bin_edges[1] - bin_edges[0]
+    ax_big.bar(bin_edges[:-1], hist_values, width=width, align='edge')
     ax_big.axvline(y_p50, color='black', linestyle='-',
                    label='Median: {:<4.0f}'.format(y_p50))
     ax_big.axvline(y_avg, color='black', linestyle=':',
