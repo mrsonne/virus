@@ -202,13 +202,15 @@ def ua_timeseries(times, values):
     fig, ax = plt.subplots(figsize=(15, 8))
     avg = np.average(values, axis=1)
     avg_max = max(avg)
-    pvals = np.linspace(0, 100, 6)
+    pvals = [0, 20, 40, 60, 80, 95]
     percentiles = np.percentile(values, pvals, axis=1)
     p50 = np.percentile(values, 50, axis=1)
     p50_max = max(p50)
     for lower, upper, p_low, p_up in zip(percentiles[:-1], percentiles[1:], pvals[:-1], pvals[1:]):
         p_mean = 0.5*(p_low + p_up)
-        ax.fill_between(times, lower, upper, color=cmap(p_mean/100), alpha=0.5, linewidth=2, zorder=10000, label='Percentile {:.0f}-{:.0f}'.format(p_low, p_up))
+        ax.fill_between(times, lower, upper, color=cmap(p_mean/100),
+                        alpha=0.5, linewidth=2, zorder=10000,
+                        label='Percentile {:.0f} % - {:.0f} %'.format(p_low, p_up))
 
     # Samples
     ax.plot(times, values, color="gray", alpha=0.1, linewidth=1)
@@ -218,8 +220,10 @@ def ua_timeseries(times, values):
     ax.plot(times, p50, color="black", alpha=1, linewidth=2, label='Median (max={:5.1e})'.format(avg_max), zorder=10000)
     # ax.plot(times, avg, color="black", alpha=1, linewidth=2,
     #         label='Average (max={:5.1e})'.format(avg_max), zorder=10000)
-    ax.legend(fontsize=font_size, loc='upper left')
-    ax.set_ylim(0, ax.get_ylim()[1])
+    ax.legend(fontsize=font_size, loc='upper right')
+    ylim_max = np.max(percentiles[-1])
+    ax.set_xlim(0, ax.get_xlim()[1])
+    ax.set_ylim(0, ylim_max*1.05)
     ax.set_xlabel('Time (day)', fontsize=font_size)
     ax.set_ylabel('Ventilators required', fontsize=font_size)
     ax.tick_params(axis='x', labelsize=font_size)
