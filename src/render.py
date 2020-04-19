@@ -30,7 +30,7 @@ def par_table(population, n_infected_init, infections_at_tau, k, pars):
     kIminus = get_rate_Iminus(pars['tau'], infections_at_tau, k)
 
 
-    fstr = '{:18} {:7} {}'
+    fstr = '{:18} {:8} {}'
     ostrs = []
     ostrs.append(fstr.format('Encounters',  pars['E'], '/day'))
     ostrs.append(fstr.format('Population', population, ''))
