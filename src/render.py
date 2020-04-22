@@ -72,27 +72,36 @@ def plot(times, infected, hospitalized,
     max_ventilated = np.max(ventilated)
     max_recovered = np.max(recovered)
     max_infected = np.max(infected)
+    idx_start = np.searchsorted(infected, max_infected*0.05)
+    idx_end = np.searchsorted(infected[::-1], max_infected*0.05)
+    if idx_start == len(infected): idx_start = 0
+    if idx_end == len(infected): idx_end = 0
+    duration = times[-idx_end] - times[idx_start]
     total_deaths = dead[-1]
 
     fig, ax = plt.subplots(figsize=(15, 8))
 
+    ax.fill_between(times[idx_start:-idx_end], 0, infected[idx_start:-idx_end],
+                    alpha=0.2, color='b', linewidth=0, zorder=-999, label='Duration {:.0f} days'.format(duration))
+
     ax.plot(times, infected, 'b-', linewidth=2,
-            label='Infected (max={:5.1e})'.format(max_infected))
-    ax.plot(times, hospitalized, 'b--', linewidth=2,
-            label='Hospitalized (max={:5.1e})'.format(max_hospitalized))
-    ax.plot(times, ventilated, 'b:', linewidth=2,
-            label='Ventilated (max={:5.1e})'.format(max_ventilated))
-    ax.plot(times, dead, 'r-', linewidth=2,
-            label='Dead (total={:5.1e})'.format(total_deaths))
+            label='Infected (max={:5.1e}) ←'.format(max_infected))
+
+    ax_right = ax.twinx() 
+    ax_right.plot(times, hospitalized, 'b--', linewidth=2,
+            label='Hospitalized (max={:5.1e}) →'.format(max_hospitalized))
+    ax_right.plot(times, ventilated, 'b:', linewidth=2,
+            label='Ventilated (max={:5.1e}) →'.format(max_ventilated))
+    ax_right.plot(times, dead, 'r-', linewidth=2,
+            label='Dead (total={:5.1e}) →'.format(total_deaths))
 
     if show_recovered:
         alpha = 1
         ylim = None
     else:
         ylim = ax.get_ylim()
-        alpha = 0.2
 
-    ax.plot(times, recovered, 'g-', linewidth=2, alpha=alpha, label='Recovered (max={:5.1e})'.format(max_recovered))
+    ax.plot(times, recovered, 'g-', linewidth=6, alpha=0.4, label='Recovered (max={:5.1e}) ←'.format(max_recovered))
     if ylim: ax.set_ylim(ylim)
 
 
@@ -101,16 +110,16 @@ def plot(times, infected, hospitalized,
                 label='Ventilator capacity')
 
 
-    # TODO: show parameters in plot
 
-#     ax.legend(loc='upper left')
     font_size = 16
     ax.set_xlabel('Time (day)', fontsize=font_size)
     ax.set_ylabel('Individuals', fontsize=font_size)
-    ax.legend(fontsize=font_size) 
     ax.tick_params(axis='x', labelsize=font_size)
     ax.tick_params(axis='y', labelsize=font_size)
     plt.title(title, fontsize=font_size*1.25)
+    fig.legend(fontsize=font_size*0.8, ncol=2, mode='expand',
+               loc="lower left", bbox_to_anchor=(0, 1, 1, 0.1), 
+               bbox_transform=ax.transAxes, frameon=False)
     plt.show()
 
 
