@@ -145,7 +145,7 @@ def get_rate_Iminus(tau, sf_at_tau, k=1):
     Determine the rate based on the survival function at tau
     """
     
-    if sf_at_tau == 'mean':
+    if sf_at_tau == 'tau_is_mean':
         return k/tau
     else:
         r_exp = -np.log(sf_at_tau) / tau

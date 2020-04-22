@@ -30,7 +30,7 @@ def par_table(population, n_infected_init, survival_at_tau, k, pars):
     r_Iplus = get_rate_Iplus(pars['E'], pars['p_t'])
     r_Iminus = get_rate_Iminus(pars['tau'], survival_at_tau, k)
 
-    if survival_at_tau == 'mean':
+    if survival_at_tau == 'tau_is_mean':
         _survival_at_tau = erlang.sf(pars['tau'], a=k, scale=1./r_Iminus)
     else:
         _survival_at_tau = survival_at_tau
@@ -49,7 +49,7 @@ def par_table(population, n_infected_init, survival_at_tau, k, pars):
     ostrs.append(fstr.format('Mean infctn time', k/r_Iminus, 'day'))
     ostrs.append(fstr.format('r_I+', r_Iplus, '/day'))
     ostrs.append(fstr.format('r_I-', r_Iminus, '/day'))
-    ostrs.append(fstr.format('k*r_I+ / r_I-', k*r_Iplus / r_Iminus, ''))
+    ostrs.append(fstr.format('k·r_I+ / r_I-', k*r_Iplus / r_Iminus, ''))
 
     fstr = '{:18} {:8.2f} %'
     ostrs.append(fstr.format('p_t', pars['p_t']*100))
