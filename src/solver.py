@@ -144,16 +144,20 @@ def get_rate_Iminus(tau, sf_at_tau, k=1):
     """
     Determine the rate based on the survival function at tau
     """
-    r_exp = -np.log(sf_at_tau) / tau
-    if k == 1:
-        return r_exp
+    
+    if sf_at_tau == 'mean':
+        return k/tau
     else:
-        r_est = r_exp*k
-        sol = optimize.root_scalar(obj, bracket=[1e-9, 5*r_est],
-                                   x0=r_est, 
-                                   args=(tau, sf_at_tau, k),
-                                   method='brentq')
-        return sol.root
+        r_exp = -np.log(sf_at_tau) / tau
+        if k == 1:
+            return r_exp
+        else:
+            r_est = r_exp*k
+            sol = optimize.root_scalar(obj, bracket=[1e-9, 5*r_est],
+                                    x0=r_est,
+                                    args=(tau, sf_at_tau, k),
+                                    method='brentq')
+            return sol.root
 
 
 
@@ -168,7 +172,7 @@ def extract_time_series(sol, ytot, p_h, p_v, ventilator_capacity):
 
 
 def solve(y0,
-          infections_at_tau,
+          survival_at_tau,
           E,
           p_t,
           tau,
@@ -181,7 +185,7 @@ def solve(y0,
           n_time_eval=1000):
 
     kIplus = get_rate_Iplus(E, p_t)
-    kIminus = get_rate_Iminus(tau, infections_at_tau, N_INFECTED_STAGES)
+    kIminus = get_rate_Iminus(tau, survival_at_tau, N_INFECTED_STAGES)
 
     ytot = np.sum( y0 )
 

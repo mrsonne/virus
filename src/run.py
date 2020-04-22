@@ -22,7 +22,7 @@ def get_max(time_series):
 
 
 def get_pars(virus_id, country_id, encounters_per_day,
-             tspan, infections_at_tau, k, p_t):
+             tspan, survival_at_tau, k, p_t):
 
 
     try:
@@ -33,7 +33,7 @@ def get_pars(virus_id, country_id, encounters_per_day,
                                       ', '.join(list(COUNTRYFUN_FOR_COUNTRYID.keys()))))
 
     if encounters_per_day is None:
-        pars['E'] = get_rate_Iminus(pars['tau'], infections_at_tau, k)/get_rate_Iplus(1., pars['p_t']) # gives constant infected count
+        pars['E'] = get_rate_Iminus(pars['tau'], survival_at_tau, k)/get_rate_Iplus(1., pars['p_t']) # gives constant infected count
     else:
         pars['E'] = encounters_per_day
 
@@ -45,7 +45,7 @@ def get_pars(virus_id, country_id, encounters_per_day,
 
 def virus(virus_id, country_id, encounters_per_day=None,
                 show_recovered=False, tspan=None,
-                infections_at_tau=0.2, k=1, p_t=None):
+                survival_at_tau=0.2, k=1, p_t=None):
     """
     Virus simulation
     """
@@ -53,7 +53,7 @@ def virus(virus_id, country_id, encounters_per_day=None,
 
     pars, population = get_pars(virus_id, country_id,
                                 encounters_per_day,
-                                tspan, infections_at_tau, k,
+                                tspan, survival_at_tau, k,
                                 p_t)
 
 
@@ -62,12 +62,11 @@ def virus(virus_id, country_id, encounters_per_day=None,
     # DEBUG: see pure survival function
     # n_infected_init = population
 
-    
-    print(render.par_table(population, n_infected_init, infections_at_tau, k, pars))
+    print(render.par_table(population, n_infected_init, survival_at_tau, k, pars))
 
     y0 = get_y0(population, n_infected_init, k)
 
-    tss = solve(y0, infections_at_tau, **pars)
+    tss = solve(y0, survival_at_tau, **pars)
 
     title = '{} ($E$={}/day)'.format(virus_id, pars['E'])
     render.plot(tss["times"], 
@@ -82,7 +81,7 @@ def virus(virus_id, country_id, encounters_per_day=None,
 
 def contour(virus_id, country_id, par1, par2, response,
             encounters_per_day=None, tspan=None,
-            infections_at_tau=0.2, k=1,
+            survival_at_tau=0.2, k=1,
             nsteps=25):
     """Grid
     """
@@ -90,7 +89,7 @@ def contour(virus_id, country_id, par1, par2, response,
     p_t = None
     pars, population = get_pars(virus_id, country_id,
                                 encounters_per_day,
-                                tspan, infections_at_tau, k,
+                                tspan, survival_at_tau, k,
                                 p_t)
 
     parstr1 = par1['name']
@@ -121,7 +120,7 @@ def contour(virus_id, country_id, par1, par2, response,
     for i, (p1, p2) in enumerate(itertools.product(pars1, pars2)):
         pars[parstr1] = p1
         pars[parstr2] = p2
-        time_series = solve(y0, infections_at_tau, **pars)[response["name"]]
+        time_series = solve(y0, survival_at_tau, **pars)[response["name"]]
         resp_grid.append(response["transform"](time_series))
         pars1_grid.append(p1)
         pars2_grid.append(p2)
@@ -141,13 +140,13 @@ def ua(virus_id, country_id,
        smplpars, response,
        nsamples=1000,
        tspan=None,
-       infections_at_tau=0.2, k=1):
+       survival_at_tau=0.2, k=1):
     """Uncertainty analysis
     """
     p_t = None
     pars, population = get_pars(virus_id, country_id,
                                 encounters_per_day,
-                                tspan, infections_at_tau, k,
+                                tspan, survival_at_tau, k,
                                 p_t)
 
 
@@ -175,7 +174,7 @@ def ua(virus_id, country_id,
         for parval, parobj in zip(parvals, smplpars):
             pars[parobj["name"]] = parval
 
-        tss = solve(y0, infections_at_tau, **pars, n_time_eval=n_time_eval)
+        tss = solve(y0, survival_at_tau, **pars, n_time_eval=n_time_eval)
         if len(tss[response["name"]]) < n_time_eval: continue
         response_trns.append(response_ftrans(tss[response["name"]]))
         response_ts.append(tss[response["name"]])

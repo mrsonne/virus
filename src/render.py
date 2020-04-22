@@ -3,6 +3,7 @@ import matplotlib.colors as colors
 import numpy as np
 from scipy.interpolate import griddata
 from scipy.stats import percentileofscore
+from scipy.stats import erlang
 
 from .solver import get_rate_Iplus, get_rate_Iminus
 
@@ -24,11 +25,15 @@ def table_str(header, rows, title):
     return '\n'.join(lines)
 
 
-def par_table(population, n_infected_init, infections_at_tau, k, pars):
+def par_table(population, n_infected_init, survival_at_tau, k, pars):
 
     r_Iplus = get_rate_Iplus(pars['E'], pars['p_t'])
-    r_Iminus = get_rate_Iminus(pars['tau'], infections_at_tau, k)
+    r_Iminus = get_rate_Iminus(pars['tau'], survival_at_tau, k)
 
+    if survival_at_tau == 'mean':
+        _survival_at_tau = erlang.sf(pars['tau'], a=k, scale=1./r_Iminus)
+    else:
+        _survival_at_tau = survival_at_tau
 
     fstr = '{:18} {:8} {}'
     ostrs = []
@@ -37,10 +42,10 @@ def par_table(population, n_infected_init, infections_at_tau, k, pars):
     ostrs.append(fstr.format('Vent. capacity', pars['ventilator_capacity'], ''))
     ostrs.append(fstr.format('Infected at day 0', n_infected_init, ''))
     ostrs.append(fstr.format('Infctn time (τ)', pars['tau'], 'day'))
-    ostrs.append(fstr.format('Infctns at τ', infections_at_tau*100, '%'))
     ostrs.append(fstr.format('Infctn stages (k)', k, ''))
 
     fstr = '{:18} {:8.3f} {}'
+    ostrs.append(fstr.format('Survival at τ', _survival_at_tau*100, '%'))
     ostrs.append(fstr.format('Mean infctn time', k/r_Iminus, 'day'))
     ostrs.append(fstr.format('r_I+', r_Iplus, '/day'))
     ostrs.append(fstr.format('r_I-', r_Iminus, '/day'))
@@ -116,8 +121,9 @@ def plot(times, infected, hospitalized,
     ax.set_ylabel('Individuals', fontsize=font_size)
     ax.tick_params(axis='x', labelsize=font_size)
     ax.tick_params(axis='y', labelsize=font_size)
+    ax_right.tick_params(axis='y', labelsize=font_size)
     plt.title(title, fontsize=font_size*1.25)
-    fig.legend(fontsize=font_size*0.8, ncol=2, mode='expand',
+    fig.legend(fontsize=font_size*0.9, ncol=2, mode='expand',
                loc="lower left", bbox_to_anchor=(0, 1, 1, 0.1), 
                bbox_transform=ax.transAxes, frameon=False)
     plt.show()

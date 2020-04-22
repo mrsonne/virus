@@ -13,17 +13,24 @@ np.random.seed(0)
 # How many people do you meet per day
 encounters_per_day = 50 # adjusted to fit flu data (adjusted with transmission probability)
 # encounters_per_day = 15 # damped infected count
-# encounters_per_day = 35 # flattened
+# encounters_per_day = 30 # flattened
 
 # encounters_per_day = None # constant infected count
 
-# run.virus('flu', 'denmark', encounters_per_day, k=1)
-# run.virus('flu', 'denmark', encounters_per_day, k=5, p_t=0.002097)
+run.virus('flu', 'denmark', encounters_per_day, k=1)
 # run.virus('flu', 'usa', encounters_per_day)
 # run.virus('covid19', 'denmark', None)
-run.virus('covid19', 'denmark', encounters_per_day, k=1)
-# run.virus('covid19', 'denmark', encounters_per_day, k=5, p_t=0.002097)
-# run.virus('covid19', 'denmark', encounters_per_day, show_recovered=True, tspan=[0,320])
+# run.virus('covid19', 'denmark', encounters_per_day, k=1)
+# run.virus('covid19', 'denmark', encounters_per_day, k=1, survival_at_tau='mean')
+# run.virus('covid19', 'denmark', encounters_per_day, show_recovered=True, tspan=[0,550])
+
+# Multistage stuff
+# p_t = 0.001561
+# run.virus('flu', 'denmark', encounters_per_day, k=1, p_t=p_t, survival_at_tau='mean', tspan=[0, 1200])
+# run.virus('flu', 'denmark', encounters_per_day, k=5, p_t=p_t, survival_at_tau='mean')
+# run.virus('covid19', 'denmark', encounters_per_day, k=1, p_t=p_t, survival_at_tau='mean', tspan=[0, 400])
+# run.virus('covid19', 'denmark', encounters_per_day, k=5, p_t=p_t, survival_at_tau='mean')
+
 
 # par1 = dict(axlabel=r'$p_{\rm{d}}$ (%)',
 #             name='p_d',
