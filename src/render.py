@@ -4,7 +4,7 @@ import numpy as np
 from scipy.interpolate import griddata
 from scipy.stats import percentileofscore
 
-from .solver import get_kIplus, get_rate_Iminus
+from .solver import get_rate_Iplus, get_rate_Iminus
 
 def table_str(header, rows, title):
     fstrs = '{:<10} {:^10} {:^10} {:^5}'
@@ -26,8 +26,8 @@ def table_str(header, rows, title):
 
 def par_table(population, n_infected_init, infections_at_tau, k, pars):
 
-    kIplus = get_kIplus(pars['E'], pars['p_t'])
-    kIminus = get_rate_Iminus(pars['tau'], infections_at_tau, k)
+    r_Iplus = get_rate_Iplus(pars['E'], pars['p_t'])
+    r_Iminus = get_rate_Iminus(pars['tau'], infections_at_tau, k)
 
 
     fstr = '{:18} {:8} {}'
@@ -41,12 +41,12 @@ def par_table(population, n_infected_init, infections_at_tau, k, pars):
     ostrs.append(fstr.format('Infctn stages (k)', k, ''))
 
     fstr = '{:18} {:8.3f} {}'
-    ostrs.append(fstr.format('Mean infctn time', k/kIminus, 'day'))
-    ostrs.append(fstr.format('r_I+', kIplus, '/day'))
-    ostrs.append(fstr.format('r_I-', kIminus, '/day'))
-    ostrs.append(fstr.format('r_I+ / r_I-', kIplus / kIminus, ''))
+    ostrs.append(fstr.format('Mean infctn time', k/r_Iminus, 'day'))
+    ostrs.append(fstr.format('r_I+', r_Iplus, '/day'))
+    ostrs.append(fstr.format('r_I-', r_Iminus, '/day'))
+    ostrs.append(fstr.format('k*r_I+ / r_I-', k*r_Iplus / r_Iminus, ''))
 
-    fstr = '{:18} {:8.1f} %'
+    fstr = '{:18} {:8.2f} %'
     ostrs.append(fstr.format('p_t', pars['p_t']*100))
     ostrs.append(fstr.format('p_h', pars['p_h']*100))
     ostrs.append(fstr.format('p_d', pars['p_d']*100))

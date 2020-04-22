@@ -18,9 +18,11 @@ encounters_per_day = 50 # adjusted to fit flu data (adjusted with transmission p
 # encounters_per_day = None # constant infected count
 
 # run.virus('flu', 'denmark', encounters_per_day, k=1)
+# run.virus('flu', 'denmark', encounters_per_day, k=5, p_t=0.002097)
 # run.virus('flu', 'usa', encounters_per_day)
 # run.virus('covid19', 'denmark', None)
-# run.virus('covid19', 'denmark', encounters_per_day, k=1)
+run.virus('covid19', 'denmark', encounters_per_day, k=1)
+# run.virus('covid19', 'denmark', encounters_per_day, k=5, p_t=0.002097)
 # run.virus('covid19', 'denmark', encounters_per_day, show_recovered=True, tspan=[0,320])
 
 # par1 = dict(axlabel=r'$p_{\rm{d}}$ (%)',
@@ -48,32 +50,32 @@ encounters_per_day = 50 # adjusted to fit flu data (adjusted with transmission p
     # mean = [pars["p_h"] , pars["tau"], pars["E"]]
     # cov = [[0.00001, 0. , 0], [0., 4., 0], [0., 0, 16]]
 
-par1 = dict(axlabel=r'$p_{\rm{h}}$ (%)',
-            name='p_h',
-            std=0.003,
-            transform=run.frc_to_pct
-            )
+# par1 = dict(axlabel=r'$p_{\rm{h}}$ (%)',
+#             name='p_h',
+#             std=0.003,
+#             transform=run.frc_to_pct
+#             )
 
-par2 = dict(axlabel=r'$\tau$ (days)',
-            name='tau',
-            std=1.5,
-            )
+# par2 = dict(axlabel=r'$\tau$ (days)',
+#             name='tau',
+#             std=1.5,
+#             )
 
-par3 = dict(axlabel='$E$ (day\u207B\u00B9)',
-            name='E',
-            std=4.,
-            )
+# par3 = dict(axlabel='$E$ (day\u207B\u00B9)',
+#             name='E',
+#             std=4.,
+#             )
 
-response = dict(name='ventilators_required',
-                transform=run.get_max,
-                title="Ventilator required",
-               )
+# response = dict(name='ventilators_required',
+#                 transform=run.get_max,
+#                 title="Ventilator required",
+#                )
 
-pars = par1, par2, par3
-times, ventilator_tseries = run.ua('covid19', 'denmark', 30,
-                                    pars, response,
-                                    nsamples=100, tspan=[0, 400])
-render.ua_timeseries(times, ventilator_tseries.T)
+# pars = par1, par2, par3
+# times, ventilator_tseries = run.ua('covid19', 'denmark', 30,
+#                                     pars, response,
+#                                     nsamples=100, tspan=[0, 400])
+# render.ua_timeseries(times, ventilator_tseries.T)
 
 
 # def multistage_ex():

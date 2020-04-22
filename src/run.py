@@ -2,7 +2,7 @@ import itertools
 import numpy as np
 from scipy.stats import percentileofscore
 from .data import COUNTRYFUN_FOR_COUNTRYID
-from .solver import solve, get_kIplus, get_y0, get_rate_Iminus
+from .solver import solve, get_rate_Iplus, get_y0, get_rate_Iminus
 from . import render
 
 def frc_to_pct(val):
@@ -21,18 +21,19 @@ def get_max(time_series):
     return np.max(time_series)
 
 
-def get_pars(virus_id, country_id, encounters_per_day, tspan, infections_at_tau, k):
+def get_pars(virus_id, country_id, encounters_per_day,
+             tspan, infections_at_tau, k, p_t):
 
 
     try:
-        pars, population = COUNTRYFUN_FOR_COUNTRYID[country_id](virus_id)
+        pars, population = COUNTRYFUN_FOR_COUNTRYID[country_id](virus_id, p_t)
     except KeyError:
         err_str = 'Unknown country ID "{}". Available IDs: {}'
         raise KeyError(err_str.format(country_id,
                                       ', '.join(list(COUNTRYFUN_FOR_COUNTRYID.keys()))))
 
     if encounters_per_day is None:
-        pars['E'] = get_rate_Iminus(pars['tau'], infections_at_tau, k)/get_kIplus(1., pars['p_t']) # gives constant infected count
+        pars['E'] = get_rate_Iminus(pars['tau'], infections_at_tau, k)/get_rate_Iplus(1., pars['p_t']) # gives constant infected count
     else:
         pars['E'] = encounters_per_day
 
@@ -44,7 +45,7 @@ def get_pars(virus_id, country_id, encounters_per_day, tspan, infections_at_tau,
 
 def virus(virus_id, country_id, encounters_per_day=None,
                 show_recovered=False, tspan=None,
-                infections_at_tau=0.2, k=1):
+                infections_at_tau=0.2, k=1, p_t=None):
     """
     Virus simulation
     """
@@ -52,7 +53,8 @@ def virus(virus_id, country_id, encounters_per_day=None,
 
     pars, population = get_pars(virus_id, country_id,
                                 encounters_per_day,
-                                tspan, infections_at_tau, k)
+                                tspan, infections_at_tau, k,
+                                p_t)
 
 
     n_infected_init = 5
@@ -85,9 +87,11 @@ def contour(virus_id, country_id, par1, par2, response,
     """Grid
     """
 
+    p_t = None
     pars, population = get_pars(virus_id, country_id,
                                 encounters_per_day,
-                                tspan, infections_at_tau, k)
+                                tspan, infections_at_tau, k,
+                                p_t)
 
     parstr1 = par1['name']
     parstr2 = par2['name']
@@ -140,9 +144,11 @@ def ua(virus_id, country_id,
        infections_at_tau=0.2, k=1):
     """Uncertainty analysis
     """
+    p_t = None
     pars, population = get_pars(virus_id, country_id,
                                 encounters_per_day,
-                                tspan, infections_at_tau, k)
+                                tspan, infections_at_tau, k,
+                                p_t)
 
 
     response_ftrans = response["transform"]

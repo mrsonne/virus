@@ -17,7 +17,7 @@ def get_flu_parameters():
     p_h, p_d = get_us_flu_data() 
     tspan = [0, 700]
     p_dnv = 0.
-    p_t = 0.002513 # adjusted to fit flu data
+    p_t = 0.002513 # adjusted to fit flu data with k=1
     p_v = 0. # unknown
     tau = 7 #days
     return tspan, p_t, p_v, p_h, p_d, p_dnv, tau
@@ -35,7 +35,7 @@ PARSFUN_FOR_VIRUSID = dict(flu=get_flu_parameters,
                            covid19=get_covid19_parameters)
 
 
-def _get_denmark(virus_id):
+def _get_denmark(virus_id, p_t_spec):
     """
     Danish flu data in Table 2 (~1000 deads per year)
     https://www.ssi.dk/sygdomme-beredskab-og-forskning/sygdomsovervaagning/i/influenzasaesonen---opgoerelse-over-sygdomsforekomst-2018-19
@@ -57,9 +57,11 @@ def _get_denmark(virus_id):
         raise KeyError(err_str.format(virus_id,
                                       ', '.join(list(PARSFUN_FOR_VIRUSID.keys()))))
 
+    _p_t = p_t_spec or p_t 
+
     return {'ventilator_capacity': ventilator_capacity,
            'tspan': tspan,
-           'p_t': p_t,
+           'p_t': _p_t,
            'p_v': p_v,
            'p_h': p_h,
            'p_d': p_d,
@@ -68,7 +70,7 @@ def _get_denmark(virus_id):
 
 
 
-def _get_usa(virus_id):
+def _get_usa(virus_id, p_t_spec):
     """
     """
     population = int(327e6)
@@ -88,9 +90,10 @@ def _get_usa(virus_id):
         raise KeyError(err_str.format(virus_id,
                                       ', '.join(list(PARSFUN_FOR_VIRUSID.keys()))))
 
+    _p_t = p_t_spec or p_t 
     return {'ventilator_capacity': ventilator_capacity,
            'tspan': tspan,
-           'p_t': p_t,
+           'p_t': _p_t,
            'p_v': p_v,
            'p_h': p_h,
            'p_d': p_d,

@@ -125,7 +125,7 @@ def exceed_ventilator_capacity(t, y, kIminus,
     return ventilator_capacity - ventilators_required
 
 
-def get_kIplus(encounters_per_day, p_t):
+def get_rate_Iplus(encounters_per_day, p_t):
     """
     Equivalent for infected to meet healthy and vice versa
     p_S = 0.5 (p_H = 0.5)
@@ -180,7 +180,7 @@ def solve(y0,
           ventilator_capacity,
           n_time_eval=1000):
 
-    kIplus = get_kIplus(E, p_t)
+    kIplus = get_rate_Iplus(E, p_t)
     kIminus = get_rate_Iminus(tau, infections_at_tau, N_INFECTED_STAGES)
 
     ytot = np.sum( y0 )
