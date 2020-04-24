@@ -44,9 +44,9 @@ def dydt_lct(t, y, r, k):
     return dydt
 
 
-def example(rate, rate_exp, k):
+def example(rate, rate_exp, k, neval=35):
     tspan = [0, 16.]
-    t_eval = np.linspace(*tspan, 35)
+    t_eval = np.linspace(*tspan, neval)
     y0 = [1,]
 
     # k = 5
@@ -91,6 +91,46 @@ def example(rate, rate_exp, k):
 
     for istage in range(k):
         axs[survival_idx].plot(t_eval, sol_lct.y[istage], ':', label='$I_{}$'.format(istage + 1))
+
+
+    # Styling
+    font_size = 16
+    for ax in axs:
+        ax.legend(fontsize=font_size) 
+
+        ax.tick_params(axis='x', labelsize=font_size)
+        ax.tick_params(axis='y', labelsize=font_size)
+
+
+    axs[-1].set_xlabel('x', fontsize=font_size)
+    plt.show()
+
+
+
+def exp_erl(rate, rate_exp, k, y0=1, neval=35):
+    tspan = [0, 16.]
+    t_eval = np.linspace(*tspan, neval)
+
+    # Exp
+    pdf_exp = expon.pdf(t_eval, scale=1./rate_exp)
+    survival_exp = y0*expon.sf(t_eval, scale=1./rate_exp)
+
+    pdf_erlang = erlang.pdf(t_eval, a=k, scale=1./rate)
+    survival_erlang = y0*erlang.sf(t_eval, a=k, scale=1./rate)
+
+    fig, axs = plt.subplots(2, 1, figsize=(15, 15), sharex=True)
+
+    pdf_idx = 0
+    survival_idx = 1
+
+    exp_label = 'Exp(x; $r$={:5.3f})'.format(rate_exp)
+    erlang_label = 'Erlang(x; $r$={:5.3f},$k$={})'.format(rate, k)
+
+    axs[pdf_idx].plot(t_eval, pdf_exp, 'k-', label='PDF {}'.format(exp_label))
+    axs[pdf_idx].plot(t_eval, pdf_erlang, 'k--', label='PDF {}'.format(erlang_label))
+
+    axs[survival_idx].plot(t_eval, survival_exp, 'k-', label='{}'.format(exp_label))
+    axs[survival_idx].plot(t_eval, survival_erlang, 'k--', label='{}'.format(erlang_label) )
 
 
     # Styling
