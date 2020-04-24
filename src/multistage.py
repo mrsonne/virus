@@ -66,7 +66,7 @@ def example(rate, rate_exp, k, neval=35):
     # print('mean exp: ', 1/rate_exp)
     # print('rate erlang: ', rate)
     # print('scale erlang: ', 1./rate)
-    print('mean erlang: ', k/rate)
+    # print('mean erlang: ', k/rate)
 
     pdf_erlang = erlang.pdf(t_eval, a=k, scale=1./rate)
     survival_erlang = y0[0]*erlang.sf(t_eval, a=k, scale=1./rate)
