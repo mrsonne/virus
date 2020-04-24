@@ -11,8 +11,8 @@ np.random.seed(0)
 
 
 # How many people do you meet per day
-# encounters_per_day = 50 # adjusted to fit flu data (adjusted with transmission probability)
-encounters_per_day = 15 # damped infected count
+encounters_per_day = 50 # adjusted to fit flu data (adjusted with transmission probability)
+# encounters_per_day = 15 # damped infected count
 # encounters_per_day = 30 # flattened
 
 # encounters_per_day = None # constant infected count
@@ -20,7 +20,7 @@ encounters_per_day = 15 # damped infected count
 # run.virus('flu', 'denmark', encounters_per_day, k=1)
 # run.virus('flu', 'usa', encounters_per_day)
 # run.virus('covid19', 'denmark', None)
-run.virus('covid19', 'denmark', encounters_per_day, k=1)
+# run.virus('covid19', 'denmark', encounters_per_day, k=5)
 # run.virus('covid19', 'denmark', encounters_per_day, k=1, survival_at_tau='tau_is_mean')
 # run.virus('covid19', 'denmark', encounters_per_day, show_recovered=True, tspan=[0,550])
 
@@ -84,6 +84,11 @@ run.virus('covid19', 'denmark', encounters_per_day, k=1)
 #                                     nsamples=100, tspan=[0, 400])
 # render.ua_timeseries(times, ventilator_tseries.T)
 
+p_t = 0.0015612
+encounters_per_day = 50
+run.virus('covid19', 'denmark',
+          encounters_per_day, k=5000,
+          p_t=p_t, survival_at_tau='tau_is_mean', tspan=[0,250])
 
 # def multistage_ex():
 #     # multistage example
@@ -100,4 +105,13 @@ run.virus('covid19', 'denmark', encounters_per_day, k=1)
 #     multistage.example(rate, rate_exp, k)
 
 
-# multistage_ex()
+# def multistage_ex2(k):
+#     # multistage example
+#     mean = 7.5
+#     rate = k/mean
+#     # Adjust exp rate to same mean as Erlang
+#     rate_exp = rate/k 
+#     multistage.exp_erl(rate, rate_exp, k, neval=1000)
+
+
+# multistage_ex2(10000)
