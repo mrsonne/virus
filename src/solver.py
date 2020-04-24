@@ -73,7 +73,7 @@ def dydt(t, y, kIminus, kIplus, p_r, p_d, p_dnv,
     """
     dydt = [0]*NSTATES
     I_tot = get_I_tot(y)
-    I_last = get_I_last(y)
+    I_last = max(get_I_last(y), 0)
     # Ventilator can be required in all stages since the data that we have are pooled for all hospitalized
     ventilators_required = get_ventilators_required(I_tot,
                                                     ytot,
@@ -81,27 +81,31 @@ def dydt(t, y, kIminus, kIplus, p_r, p_d, p_dnv,
                                                     p_v)
 
     ventilators_missing = ventilators_required - ventilator_capacity
-    ventilators_missing = max(ventilators_missing, 0) / ytot
 
     # All stages can transmit virus
     dIplus_dt = kIplus*I_tot*y[idx_for_state['healthy']]
     dydt[idx_for_state['healthy']] = -dIplus_dt
 
-    # You only die or recover from the last stage... A bit odd when ventilators_missing is calculated based on I_tot
-    # dIminus_dt is zero if more ventilators are required than there are individuals in the last stage... 
-    dIminus_dt = kIminus*( max(I_last - ventilators_missing, 0 ))
-    dydt[idx_for_state['dead']] = p_d * dIminus_dt
-    # If I_last < ventilators_missing only I_last will die
-    dydt[idx_for_state['dead']] += p_dnv * kIminus * min(ventilators_missing, I_last)
-    # dydt[idx_for_state['dead']] += p_dnv * kIminus * ventilators_missing
-    dydt[idx_for_state['recovered']] = dIminus_dt - dydt[idx_for_state['dead']]
+    # You only die or recover from the last stage... 
+    y_vent_missing_in_last = I_last/I_tot*max(ventilators_missing, 0) / ytot
+    if y_vent_missing_in_last > I_last:
+        raise BaseException('Solver error {} {}.'.format(ventilators_missing*ytot, I_last*ytot))
+
+    # Total rate leaving last stage
+    dIminus_dt_tot = kIminus * I_last
+
+    # Death rate for individuals that do not require a ventilator plus 
+    # individuals that require a ventilator and get one
+    dydt[idx_for_state['dead']] =  p_d * kIminus * ( I_last - y_vent_missing_in_last )
+
+    # Death rate for individuals that require a ventilator and do not get one
+    dydt[idx_for_state['dead']] += p_dnv * kIminus * y_vent_missing_in_last
+
+    # Closure relation 
+    dydt[idx_for_state['recovered']] = dIminus_dt_tot - dydt[idx_for_state['dead']]
     
     dydt[get_first_iidx()] += dIplus_dt
-    # dydt[get_last_iidx()] -=  dIminus_dt
     dydt[get_last_iidx()] -=  dydt[idx_for_state['dead']] +  dydt[idx_for_state['recovered']]
-
-    # print(list(range(get_first_iidx(), get_last_iidx())))
-    # print(list(range(get_first_iidx() + 1, get_last_iidx() + 1)))
 
     # Exclude last since it's already handled
     for iidx in range(get_first_iidx(), get_last_iidx()):
