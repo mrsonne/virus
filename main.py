@@ -17,7 +17,7 @@ encounters_per_day = 50 # adjusted to fit flu data (adjusted with transmission p
 
 # encounters_per_day = None # constant infected count
 
-# run.virus('flu', 'denmark', encounters_per_day, k=1)
+run.virus('flu', 'denmark', encounters_per_day, k=1)
 # run.virus('flu', 'usa', encounters_per_day)
 # run.virus('covid19', 'denmark', None)
 # run.virus('covid19', 'denmark', encounters_per_day, k=5)
@@ -84,11 +84,11 @@ encounters_per_day = 50 # adjusted to fit flu data (adjusted with transmission p
 #                                     nsamples=100, tspan=[0, 400])
 # render.ua_timeseries(times, ventilator_tseries.T)
 
-p_t = 0.0015612
-encounters_per_day = 50
-run.virus('covid19', 'denmark',
-          encounters_per_day, k=5000,
-          p_t=p_t, survival_at_tau='tau_is_mean', tspan=[0,250])
+# p_t = 0.0015612*2
+# encounters_per_day = 50
+# run.virus('covid19', 'denmark',
+#           encounters_per_day, k=2000,
+#           p_t=p_t, survival_at_tau='tau_is_mean', tspan=[0,250])
 
 # def multistage_ex():
 #     # multistage example

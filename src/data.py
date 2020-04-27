@@ -17,7 +17,7 @@ def get_flu_parameters():
     p_h, p_d = get_us_flu_data() 
     tspan = [0, 700]
     p_dnv = 0.
-    p_t = 0.002513 # adjusted to fit flu data with k=1
+    p_t = 0.005026 # adjusted to fit flu data with k=1
     p_v = 0. # unknown
     tau = 7 #days
     return tspan, p_t, p_v, p_h, p_d, p_dnv, tau

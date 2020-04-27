@@ -131,13 +131,8 @@ def exceed_ventilator_capacity(t, y, kIminus,
 
 def get_rate_Iplus(encounters_per_day, p_t):
     """
-    Equivalent for infected to meet healthy and vice versa
-    p_S = 0.5 (p_H = 0.5)
-        S         H
-    S   0.25      0.25
-    H   0.25      0.25
     """
-    return 2*encounters_per_day*p_t
+    return encounters_per_day*p_t
 
 
 def obj(rate, tau, sf_at_tau, k):
