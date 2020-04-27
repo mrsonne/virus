@@ -233,7 +233,7 @@ def ua_timeseries(times, values):
         p_mean = 0.5*(p_low + p_up)
         ax.fill_between(times, lower, upper, color=cmap(p_mean/100),
                         alpha=0.5, linewidth=2, zorder=10000,
-                        label='Percentile {:.0f} % - {:.0f} %'.format(p_low, p_up))
+                        label='Percentile {:.0f} - {:.0f}'.format(p_low, p_up))
 
     # Samples
     ax.plot(times, values, color="gray", alpha=0.1, linewidth=1)
