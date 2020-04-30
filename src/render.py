@@ -26,8 +26,10 @@ def table_str(header, rows, title):
 
 
 def par_table(population, n_infected_init, survival_at_tau, k, pars):
+    """Assume only one relevant element in pars['Es']
+    """
 
-    r_Iplus = get_rate_Iplus(pars['E'], pars['p_t'])
+    r_Iplus = get_rate_Iplus(pars['Es'][0], pars['p_t'])
     r_Iminus = get_rate_Iminus(pars['tau'], survival_at_tau, k)
 
     if survival_at_tau == 'tau_is_mean':
@@ -37,7 +39,7 @@ def par_table(population, n_infected_init, survival_at_tau, k, pars):
 
     fstr = '{:18} {:8} {}'
     ostrs = []
-    ostrs.append(fstr.format('Encounters',  pars['E'], '/day'))
+    ostrs.append(fstr.format('Encounters',  pars['Es'][0], '/day'))
     ostrs.append(fstr.format('Population', population, ''))
     ostrs.append(fstr.format('Vent. capacity', pars['ventilator_capacity'], ''))
     ostrs.append(fstr.format('Infected at day 0', n_infected_init, ''))

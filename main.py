@@ -17,7 +17,10 @@ encounters_per_day = 50 # adjusted to fit flu data (adjusted with transmission p
 
 # encounters_per_day = None # constant infected count
 
-run.virus('flu', 'denmark', encounters_per_day, k=1)
+# run.virus('flu', 'denmark', encounters_per_day, k=1)
+run.virus('covid19', 'denmark', 50, k=1)
+# run.virus('covid19', 'denmark', [50, 10, 30], tspan=[0, 50, 64, 150], k=1)
+
 # run.virus('flu', 'usa', encounters_per_day)
 # run.virus('covid19', 'denmark', None)
 # run.virus('covid19', 'denmark', encounters_per_day, k=5)
@@ -25,7 +28,7 @@ run.virus('flu', 'denmark', encounters_per_day, k=1)
 # run.virus('covid19', 'denmark', encounters_per_day, show_recovered=True, tspan=[0,550])
 
 # Multistage stuff
-# p_t = 0.0015612
+# p_t = 0.0031224
 # run.virus('flu', 'denmark', encounters_per_day, k=1, p_t=p_t, survival_at_tau='tau_is_mean', tspan=[0, 1200])
 # run.virus('flu', 'denmark', encounters_per_day, k=5, p_t=p_t, survival_at_tau='tau_is_mean')
 # run.virus('covid19', 'denmark', encounters_per_day, k=1, p_t=p_t, survival_at_tau='tau_is_mean', tspan=[0, 400])
@@ -60,7 +63,7 @@ run.virus('flu', 'denmark', encounters_per_day, k=1)
 # par1 = dict(axlabel=r'$p_{\rm{h}}$ (%)',
 #             name='p_h',
 #             std=0.003,
-#             transform=run.frc_to_pct
+#             transform=run.frc_to_pct,
 #             )
 
 # par2 = dict(axlabel=r'$\tau$ (days)',
@@ -69,8 +72,10 @@ run.virus('flu', 'denmark', encounters_per_day, k=1)
 #             )
 
 # par3 = dict(axlabel='$E$ (day\u207B\u00B9)',
-#             name='E',
+#             name='Es',
 #             std=4.,
+#             extractfun=run.get_first,
+#             castfun=np.atleast_1d,
 #             )
 
 # response = dict(name='ventilators_required',

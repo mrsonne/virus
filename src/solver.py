@@ -172,7 +172,7 @@ def extract_time_series(sol, ytot, p_h, p_v, ventilator_capacity):
 
 def solve(y0,
           survival_at_tau,
-          E,
+          Es,
           p_t,
           tau,
           p_d,
@@ -183,7 +183,6 @@ def solve(y0,
           ventilator_capacity,
           n_time_eval=1000):
 
-    kIplus = get_rate_Iplus(E, p_t)
     kIminus = get_rate_Iminus(tau, survival_at_tau, N_INFECTED_STAGES)
 
     ytot = np.sum( y0 )
@@ -194,42 +193,46 @@ def solve(y0,
     exceed_ventilator_capacity.direction = -1
 
     p_r = 1. - p_d
-    times = np.linspace(*tspan, n_time_eval)
 
     # Legacy from time where solve_ivp could be called multiple times with changing parameters
     ts, infected, recovered, dead, hospitalized, ventilator, ventilators_required = [], [], [], [], [], [], []
+    for idx, E in enumerate(Es):
+        _tspan = tspan[idx], tspan[idx+1]
+        times = np.linspace(*_tspan, n_time_eval)
+        kIplus = get_rate_Iplus(E, p_t)
 
-    sol = solve_ivp(dydt, tspan, y0,
-                    args=(kIminus, kIplus, p_r,
-                          p_d,
-                          p_dnv,
-                          ventilator_capacity,
-                          p_h,
-                          p_v, ytot),
-                    t_eval=times,
-                    method='Radau',
-                    rtol=1e-6, # tighten tolerance to avoid negative population count
-                    events=exceed_ventilator_capacity
-                )
+        sol = solve_ivp(dydt, _tspan, y0,
+                        args=(kIminus, kIplus, p_r,
+                            p_d,
+                            p_dnv,
+                            ventilator_capacity,
+                            p_h,
+                            p_v, ytot),
+                        t_eval=times,
+                        method='Radau',
+                        rtol=1e-6, # tighten tolerance to avoid negative population count
+                        events=exceed_ventilator_capacity
+                    )
 
-    # Check closure
-    # print('Closure OK', np.allclose(np.sum(sol.y, axis=0) - 1, 0))
+        # Check closure
+        # print('Closure OK', np.allclose(np.sum(sol.y, axis=0) - 1, 0))
 
-    (_ts, _infected, _recovered,
-    _dead, _hospitalized, _ventilator,
-    _ventilators_required) = extract_time_series(sol,
-                                                 ytot,
-                                                 p_h,
-                                                 p_v,
-                                                 ventilator_capacity)
+        (_ts, _infected, _recovered,
+        _dead, _hospitalized, _ventilator,
+        _ventilators_required) = extract_time_series(sol,
+                                                     ytot,
+                                                     p_h,
+                                                     p_v,
+                                                     ventilator_capacity)
 
-    ts = np.append(ts, _ts)
-    infected = np.append(infected, _infected)
-    recovered = np.append(recovered, _recovered)
-    dead = np.append(dead, _dead)
-    hospitalized = np.append(hospitalized, _hospitalized)
-    ventilator = np.append(ventilator, _ventilator)
-    ventilators_required = np.append(ventilators_required, _ventilators_required)
+        y0 = sol.y[:,-1]
+        ts = np.append(ts, _ts)
+        infected = np.append(infected, _infected)
+        recovered = np.append(recovered, _recovered)
+        dead = np.append(dead, _dead)
+        hospitalized = np.append(hospitalized, _hospitalized)
+        ventilator = np.append(ventilator, _ventilator)
+        ventilators_required = np.append(ventilators_required, _ventilators_required)
 
     return {'times': ts,
             'infected': infected,

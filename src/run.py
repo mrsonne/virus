@@ -17,6 +17,10 @@ def get_last(time_series):
     return time_series[-1]
 
 
+def get_first(vals):
+    return vals[0]
+
+
 def get_max(time_series):
     return np.max(time_series)
 
@@ -33,9 +37,9 @@ def get_pars(virus_id, country_id, encounters_per_day,
                                       ', '.join(list(COUNTRYFUN_FOR_COUNTRYID.keys()))))
 
     if encounters_per_day is None:
-        pars['E'] = get_rate_Iminus(pars['tau'], survival_at_tau, k)/get_rate_Iplus(1., pars['p_t']) # gives constant infected count
+        pars['Es'] = get_rate_Iminus(pars['tau'], survival_at_tau, k)/get_rate_Iplus(1., pars['p_t']) # gives constant infected count
     else:
-        pars['E'] = encounters_per_day
+        pars['Es'] = encounters_per_day
 
     if tspan:
         pars['tspan'] = tspan
@@ -50,9 +54,9 @@ def virus(virus_id, country_id, encounters_per_day=None,
     Virus simulation
     """
 
-
+    _encounters_per_day = np.atleast_1d(encounters_per_day)
     pars, population = get_pars(virus_id, country_id,
-                                encounters_per_day,
+                                _encounters_per_day,
                                 tspan, survival_at_tau, k,
                                 p_t)
 
@@ -62,13 +66,14 @@ def virus(virus_id, country_id, encounters_per_day=None,
     # DEBUG: see pure survival function
     # n_infected_init = population
 
-    print(render.par_table(population, n_infected_init, survival_at_tau, k, pars))
+    if len(_encounters_per_day) == 1:
+        print(render.par_table(population, n_infected_init, survival_at_tau, k, pars))
 
     y0 = get_y0(population, n_infected_init, k)
 
     tss = solve(y0, survival_at_tau, **pars)
 
-    title = '{} ($E$={}/day)'.format(virus_id, pars['E'])
+    title = '{} ($E$={}/day)'.format(virus_id, ','.join([str(E) for E in pars['Es']]))
     render.plot(tss["times"], 
                 tss["infected"],
                 tss["hospitalized"],
@@ -85,10 +90,10 @@ def contour(virus_id, country_id, par1, par2, response,
             nsteps=25):
     """Grid
     """
-
+    _encounters_per_day = np.atleast_1d(encounters_per_day)
     p_t = None
     pars, population = get_pars(virus_id, country_id,
-                                encounters_per_day,
+                                _encounters_per_day,
                                 tspan, survival_at_tau, k,
                                 p_t)
 
@@ -125,7 +130,7 @@ def contour(virus_id, country_id, par1, par2, response,
         pars1_grid.append(p1)
         pars2_grid.append(p2)
 
-    title = '{} ({}, $E$={}/day)'.format(response["title"], virus_id, pars['E'])
+    title = '{} ({}, $E$={}/day)'.format(response["title"], virus_id, ','.join([str(E) for E in pars['Es']]))
     render.cplot(ftrans1(np.array(pars1_grid)), 
                  ftrans2(np.array(pars2_grid)),
                  resp_grid,
@@ -143,9 +148,10 @@ def ua(virus_id, country_id,
        survival_at_tau=0.2, k=1):
     """Uncertainty analysis
     """
+    _encounters_per_day = np.atleast_1d(encounters_per_day)
     p_t = None
     pars, population = get_pars(virus_id, country_id,
-                                encounters_per_day,
+                                _encounters_per_day,
                                 tspan, survival_at_tau, k,
                                 p_t)
 
@@ -157,7 +163,16 @@ def ua(virus_id, country_id,
     y0 = get_y0(population, n_infected_init, k)
 
     # Prepare sampling
-    mean = [parobj["mean"] if "mean" in parobj else pars[parobj["name"]] for parobj in smplpars]
+    mean = []
+    for parobj in smplpars:
+        if "mean" in parobj:
+            mean.append(parobj["mean"])
+        else: 
+            try:
+                mean.append(parobj["extractfun"](pars[parobj["name"]]))
+            except:
+                mean.append(pars[parobj["name"]])
+
     cov = np.diag([parobj['std']**2 for parobj in smplpars])
     xvals = np.random.multivariate_normal(mean, cov, nsamples).T
 
@@ -172,7 +187,10 @@ def ua(virus_id, country_id,
 
         # Tranfer parameters
         for parval, parobj in zip(parvals, smplpars):
-            pars[parobj["name"]] = parval
+            try:
+                pars[parobj["name"]] = parobj["castfun"](parval)
+            except:
+                pars[parobj["name"]] = parval
 
         tss = solve(y0, survival_at_tau, **pars, n_time_eval=n_time_eval)
         if len(tss[response["name"]]) < n_time_eval: continue
@@ -190,7 +208,7 @@ def ua(virus_id, country_id,
         xvals[i, :] = fun(xvals[i, :])
 
     # Plotting
-    title = '{}, $E$={}'.format(virus_id, pars['E'])
+    title = '{}'.format(virus_id)
     render.ua_plot(xvals, response_trns, xnames, yname,
                    response_ts=response_ts,
                    pars=pars,
