@@ -150,11 +150,11 @@ def cplot(x, y, z, x_nom, y_nom, xlabel, ylabel, title=''):
     plt.show()
 
 
-def ua_plot(xvals, yvals, xnames, yname,
+def ua_plot(xvals_for_parname, yvals, parobjs, yname,
             response_ts=None, pars=None, # specify these together
             n_bins=25, title='', threshold=None):
     font_size = 16
-    nattrs = xvals.shape[0]
+    nattrs = len(parobjs)
     fig = plt.figure(figsize=(14, 7), constrained_layout=True)
     gs = fig.add_gridspec(ncols=3, nrows=nattrs)
     axs = []
@@ -163,9 +163,9 @@ def ua_plot(xvals, yvals, xnames, yname,
 
     ax_big = fig.add_subplot(gs[:, 1:])
 
-    for ax, _xvals, name in zip(axs, xvals, xnames):
-       ax.hist(_xvals, bins=n_bins, density=True, align='mid')
-       ax.set_xlabel(name, fontsize=font_size)
+    for ax, parobj in zip(axs, parobjs):
+       ax.hist(xvals_for_parname[parobj["name"]], bins=n_bins, density=True, align='mid')
+       ax.set_xlabel(parobj["axlabel"], fontsize=font_size)
        ax.set_ylabel('Density', fontsize=font_size)
        ax.tick_params(axis='x', labelsize=font_size)
        ax.tick_params(axis='y', labelsize=font_size)
@@ -206,7 +206,7 @@ def ua_plot(xvals, yvals, xnames, yname,
     plt.show()
 
 
-def ua_timeseries(times, values):
+def ua_timeseries(times, values, ylabel=''):
 
     # This dictionary defines the colormap
     cdict = {'red':  ((0.0, 0.0, 0.0),   # no red at 0
@@ -252,7 +252,7 @@ def ua_timeseries(times, values):
     ax.set_xlim(0, ax.get_xlim()[1])
     ax.set_ylim(0, ylim_max*1.05)
     ax.set_xlabel('Time (day)', fontsize=font_size)
-    ax.set_ylabel('Ventilators required', fontsize=font_size)
+    ax.set_ylabel(ylabel, fontsize=font_size)
     ax.tick_params(axis='x', labelsize=font_size)
     ax.tick_params(axis='y', labelsize=font_size)
     plt.show()

@@ -142,7 +142,7 @@ def contour(virus_id, country_id, par1, par2, response,
 
 def ua(virus_id, country_id,
        encounters_per_day,
-       smplpars, response,
+       parobjs, response,
        nsamples=1000,
        tspan=None,
        survival_at_tau=0.2, k=1):
@@ -163,18 +163,18 @@ def ua(virus_id, country_id,
     y0 = get_y0(population, n_infected_init, k)
 
     # Prepare sampling
-    mean = []
-    for parobj in smplpars:
+    xvals_for_parname = {}
+    for parobj in parobjs:
         if "mean" in parobj:
-            mean.append(parobj["mean"])
+            mean = parobj["mean"]
         else: 
-            try:
-                mean.append(parobj["extractfun"](pars[parobj["name"]]))
-            except:
-                mean.append(pars[parobj["name"]])
-
-    cov = np.diag([parobj['std']**2 for parobj in smplpars])
-    xvals = np.random.multivariate_normal(mean, cov, nsamples).T
+            mean = pars[parobj["name"]]
+        
+        try:
+            cov = np.diag([parobj['std']**2 for _ in mean])
+            xvals_for_parname[parobj["name"]] = np.random.multivariate_normal(mean, cov, nsamples)
+        except (ValueError, TypeError):
+           xvals_for_parname[parobj["name"]] = np.random.normal(mean, parobj['std'], nsamples).T
 
     # Initialize transformed response and full time series
     response_trns = []
@@ -183,15 +183,12 @@ def ua(virus_id, country_id,
     n_time_eval = 1000
 
     # Loop over parameter sets and solve
-    for parvals in xvals.T:
+    for idxsmpl in range(nsamples):
 
         # Tranfer parameters
-        for parval, parobj in zip(parvals, smplpars):
-            try:
-                pars[parobj["name"]] = parobj["castfun"](parval)
-            except:
-                pars[parobj["name"]] = parval
-
+        for parobj in parobjs:
+            pars[parobj["name"]] = xvals_for_parname[parobj["name"]][idxsmpl]
+                
         tss = solve(y0, survival_at_tau, **pars, n_time_eval=n_time_eval)
         if len(tss[response["name"]]) < n_time_eval: continue
         response_trns.append(response_ftrans(tss[response["name"]]))
@@ -199,17 +196,15 @@ def ua(virus_id, country_id,
 
     times = tss["times"]
     yname = response["title"]
-    xnames = [parobj["axlabel"] for parobj in smplpars]
 
     # Transform
-    ftrans = [parobj["transform"] if "transform" in parobj else dummy_transform 
-             for parobj in smplpars]
-    for i, fun in enumerate(ftrans):
-        xvals[i, :] = fun(xvals[i, :])
+    for parobj in parobjs:
+        fun = parobj["transform"] if "transform" in parobj else dummy_transform
+        xvals_for_parname[parobj["name"]] = fun(xvals_for_parname[parobj["name"]])
 
     # Plotting
     title = '{}'.format(virus_id)
-    render.ua_plot(xvals, response_trns, xnames, yname,
+    render.ua_plot(xvals_for_parname, response_trns, parobjs, yname,
                    response_ts=response_ts,
                    pars=pars,
                    title=title,
