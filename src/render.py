@@ -200,7 +200,7 @@ def ua_plot(xvals_for_parname, yvals, parobjs, yname,
     
     ax_big.set_xlabel(yname, fontsize=font_size)
     ax_big.set_ylabel('Density', fontsize=font_size)
-    ax_big.legend(fontsize=font_size) 
+    ax_big.legend(fontsize=font_size)
     ax_big.tick_params(axis='x', labelsize=font_size)
     ax_big.tick_params(axis='y', labelsize=font_size)
     plt.show()
@@ -247,7 +247,7 @@ def ua_timeseries(times, values, ylabel=''):
             label='Median (max={:5.1e})'.format(p50_max), zorder=10000)
     ax.plot(times, avg, color="black", linestyle=':', alpha=1, linewidth=2,
             label='Average (max={:5.1e})'.format(avg_max), zorder=10000)
-    ax.legend(fontsize=font_size, loc='upper right')
+    ax.legend(fontsize=font_size)
     ylim_max = np.max(percentiles[-1])
     ax.set_xlim(0, ax.get_xlim()[1])
     ax.set_ylim(0, ylim_max*1.05)
