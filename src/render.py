@@ -86,8 +86,9 @@ def plot(times, infected, hospitalized,
 
     fig, ax = plt.subplots(figsize=(15, 8))
 
-    ax.fill_between(times[idx_start:-idx_end], 0, infected[idx_start:-idx_end],
-                    alpha=0.2, color='b', linewidth=0, zorder=-999, label='Duration {:.0f} days'.format(duration))
+    if duration > 0:
+        ax.fill_between(times[idx_start:-idx_end], 0, infected[idx_start:-idx_end],
+                        alpha=0.2, color='b', linewidth=0, zorder=-999, label='Duration {:.0f} days'.format(duration))
 
     ax.plot(times, infected, 'b-', linewidth=2,
             label='Infected (max={:5.1e}) ←'.format(max_infected))
