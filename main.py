@@ -19,7 +19,7 @@ encounters_per_day = 50 # adjusted to fit flu data (adjusted with transmission p
 
 # run.virus('flu', 'denmark', encounters_per_day, k=1)
 # run.virus('covid19', 'denmark', 50, k=1)
-# run.virus('covid19', 'denmark', [50, 15, 30], tspan=[0, 50, 64, 250], k=1)
+# run.virus('covid19', 'denmark', [50, 15, 30], tspan=[0, 50, 64, 130], k=1)
 
 # run.virus('flu', 'usa', encounters_per_day)
 # run.virus('covid19', 'denmark', None)
@@ -76,23 +76,23 @@ par3 = dict(axlabel='$E$ (day\u207B\u00B9)',
             std=4.,
             )
 
-# response = dict(name='ventilators_required',
-#                 transform=run.get_max,
-#                 title="Ventilator required",
-#                )
-
-response = dict(name='infected',
+response = dict(name='ventilators_required',
                 transform=run.get_max,
-                title="Infected",
+                title="Ventilator required",
                )
 
+# response = dict(name='infected',
+#                 transform=run.get_max,
+#                 title="Infected",
+#                )
+
 pars = par1, par2, par3
-# times, response_tseries = run.ua('covid19', 'denmark', 30,
-#                                   pars, response,
-#                                   nsamples=150, tspan=[0, 400])
-times, response_tseries = run.ua('covid19', 'denmark', [50, 15, 30], 
+times, response_tseries = run.ua('covid19', 'denmark', 30,
                                   pars, response,
-                                  nsamples=150, tspan=[0, 50, 64, 250])
+                                  nsamples=150, tspan=[0, 500])
+# times, response_tseries = run.ua('covid19', 'denmark', [50, 15, 30], 
+#                                   pars, response,
+#                                   nsamples=150, tspan=[0, 50, 64, 130])
 render.ua_timeseries(times, response_tseries.T, ylabel=response['title'])
 
 # p_t = 0.0015612*2
