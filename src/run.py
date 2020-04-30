@@ -159,7 +159,7 @@ def ua(virus_id, country_id,
     response_ftrans = response["transform"]
 
     # Reduce onset time by increasing initially infected individuals
-    n_infected_init = 250
+    n_infected_init = 5
     y0 = get_y0(population, n_infected_init, k)
 
     # Prepare sampling
@@ -169,7 +169,7 @@ def ua(virus_id, country_id,
             mean = parobj["mean"]
         else: 
             mean = pars[parobj["name"]]
-        
+
         try:
             cov = np.diag([parobj['std']**2 for _ in mean])
             xvals_for_parname[parobj["name"]] = np.random.multivariate_normal(mean, cov, nsamples)
