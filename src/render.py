@@ -259,3 +259,34 @@ def ua_timeseries(times, values, ylabel=''):
     ax.tick_params(axis='x', labelsize=font_size)
     ax.tick_params(axis='y', labelsize=font_size)
     plt.show()
+
+
+def ua_timeseries_density(times, values, ylabel=''):
+    font_size = 16
+    fig, ax = plt.subplots(figsize=(15, 8))
+    nsim = values.shape[1]
+    _values = values.flatten()
+    _times = np.repeat(times, nsim)
+    ax.hexbin(_times, _values, cmap='Greys', bins='log') # use log scale since at small and large time the solution is quite well-defined
+    ax.set_ylim((0, max(_values)))
+    ax.set_xlabel('Time (day)', fontsize=font_size)
+    ax.set_ylabel(ylabel, fontsize=font_size)
+    ax.tick_params(axis='x', labelsize=font_size)
+    ax.tick_params(axis='y', labelsize=font_size)
+    plt.show()
+
+
+def ua_timeseries_boxes(times, values, ylabel=''):
+    font_size = 16
+    fig, ax = plt.subplots(figsize=(15, 8))
+    n = int(len(times)/20) # determine n to use only every n'th time to get 20 ticks
+    _times = times[::n]
+    ax.boxplot(values[::n,:].T, notch=True)
+    # ax.set_xticks(range(1, len(_times)), _times)
+    ax.set_xticklabels(['{:.0f}'.format(time) for time in _times])
+    ax.set_ylim((0, max(values.flatten())))
+    ax.set_xlabel('Time (day)', fontsize=font_size)
+    ax.set_ylabel(ylabel, fontsize=font_size)
+    ax.tick_params(axis='x', labelsize=font_size)
+    ax.tick_params(axis='y', labelsize=font_size)
+    plt.show()
