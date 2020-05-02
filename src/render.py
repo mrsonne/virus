@@ -265,18 +265,32 @@ def ua_timeseries(times, values, values_nom, ylabel=''):
     plt.show()
 
 
-def ua_timeseries_density(times, values, ylabel=''):
+def ua_timeseries_density(times, values, values_nom, ylabel=''):
     font_size = 16
     fig, ax = plt.subplots(figsize=(15, 8))
     nsim = values.shape[1]
     _values = values.flatten()
     _times = np.repeat(times, nsim)
     ax.hexbin(_times, _values, cmap='Greys', bins='log') # use log scale since at small and large time the solution is quite well-defined
+
+    nom_max = max(values_nom)
+    avg = np.average(values, axis=1)
+    avg_max = max(avg)
+    p50 = np.percentile(values, 50, axis=1)
+    p50_max = max(p50)
+    ax.plot(times, p50, color="black", alpha=1, linewidth=2,
+            label='Median (max={:5.1e})'.format(p50_max), zorder=10000)
+    ax.plot(times, avg, color="black", linestyle=':', alpha=1, linewidth=2,
+            label='Average (max={:5.1e})'.format(avg_max), zorder=10000)
+    ax.plot(times, values_nom, color="black", linestyle='--', alpha=1, linewidth=2,
+            label='Nominal (max={:5.1e})'.format(nom_max), zorder=10000)
+
     ax.set_ylim((0, max(_values)))
     ax.set_xlabel('Time (day)', fontsize=font_size)
     ax.set_ylabel(ylabel, fontsize=font_size)
     ax.tick_params(axis='x', labelsize=font_size)
     ax.tick_params(axis='y', labelsize=font_size)
+    ax.legend(fontsize=font_size)
     plt.show()
 
 
