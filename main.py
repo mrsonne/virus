@@ -11,21 +11,21 @@ np.random.seed(0)
 
 
 # How many people do you meet per day
-encounters_per_day = 50 # adjusted to fit flu data (adjusted with transmission probability)
+# encounters_per_day = 50 # adjusted to fit flu data (adjusted with transmission probability)
 # encounters_per_day = 15 # damped infected count
-# encounters_per_day = 30 # flattened
+encounters_per_day = 30 # flattened
 
 # encounters_per_day = None # constant infected count
 
 # run.virus('flu', 'denmark', encounters_per_day, k=1)
 # run.virus('covid19', 'denmark', 50, k=1)
-# run.virus('covid19', 'denmark', [50, 15, 30], tspan=[0, 50, 64, 130], k=1)
+# run.virus('covid19', 'denmark', [50, 15, 35], tspan=[0, 40, 54, 130])
 
 # run.virus('flu', 'usa', encounters_per_day)
 # run.virus('covid19', 'denmark', None)
-# run.virus('covid19', 'denmark', encounters_per_day, k=5)
+# run.virus('covid19', 'denmark', encounters_per_day, k=1)
 # run.virus('covid19', 'denmark', encounters_per_day, k=1, survival_at_tau='tau_is_mean')
-# run.virus('covid19', 'denmark', encounters_per_day, show_recovered=True, tspan=[0,550])
+# run.virus('covid19', 'denmark', encounters_per_day, show_recovered=True, tspan=[0, 400])
 
 # Multistage stuff
 # p_t = 0.0031224
@@ -68,12 +68,12 @@ par1 = dict(axlabel=r'$p_{\rm{h}}$ (%)',
 
 par2 = dict(axlabel=r'$\tau$ (days)',
             name='tau',
-            std=1.5,
+            std=.5,
             )
 
 par3 = dict(axlabel='$E$ (day\u207B\u00B9)',
             name='Es',
-            std=4.,
+            std=1.,
             )
 
 response = dict(name='ventilators_required',
@@ -87,13 +87,19 @@ response = dict(name='ventilators_required',
 #                )
 
 pars = par1, par2, par3
-times, response_tseries = run.ua('covid19', 'denmark', 30,
-                                  pars, response,
-                                  nsamples=150, tspan=[0, 500])
+(times,
+ response_tseries,
+ response_ts_nom) = run.ua('covid19', 'denmark', 30,
+                            pars, response,
+                            nsamples=50, tspan=[0, 400])
 # times, response_tseries = run.ua('covid19', 'denmark', [50, 15, 30], 
 #                                   pars, response,
-#                                   nsamples=150, tspan=[0, 50, 64, 130])
-render.ua_timeseries(times, response_tseries.T, ylabel=response['title'])
+#                                   nsamples=100, tspan=[0, 40, 54, 130])
+render.ua_timeseries(times, response_tseries.T, response_ts_nom, ylabel=response['title'])
+# render.ua_timeseries_density(times, response_tseries.T, ylabel=response['title'])
+# render.ua_timeseries_boxes(times, response_tseries.T, ylabel=response['title'])
+# render.ua_timeseries_modes(times, response_tseries.T, ylabel=response['title'])
+# render.ua_timeseries_hist(times, response_tseries.T, ylabel=response['title'])
 
 # p_t = 0.0015612*2
 # encounters_per_day = 50

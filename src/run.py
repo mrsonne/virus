@@ -1,3 +1,4 @@
+import copy
 import itertools
 import numpy as np
 from scipy.stats import percentileofscore
@@ -163,6 +164,7 @@ def ua(virus_id, country_id,
                                 p_t)
 
 
+    pars_nom = copy.deepcopy(pars)
     response_ftrans = response["transform"]
 
     # Reduce onset time by increasing initially infected individuals
@@ -215,4 +217,9 @@ def ua(virus_id, country_id,
                    pars=pars,
                    title=title,
                    threshold=pars["ventilator_capacity"])
-    return times, np.stack(response_ts, axis=0)
+
+    tss = solve(y0, survival_at_tau, **pars_nom, n_time_eval=n_time_eval)
+    response_ts_nom  = tss[response["name"]]
+
+
+    return times, np.stack(response_ts, axis=0), response_ts_nom

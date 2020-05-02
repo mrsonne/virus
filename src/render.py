@@ -178,23 +178,23 @@ def ua_plot(xvals_for_parname, yvals, parobjs, yname,
     y_p50 = np.percentile(yvals, 50)
     n_zero_to_threshold = 20
 
+    pct_above_threshold = 100. - percentileofscore(yvals, threshold)
     if threshold is None:
         _threshold = np.max(yvals) 
     else:
         _threshold = threshold
-        pct_above_threshold = 100. - percentileofscore(yvals, threshold)
         label = 'Capacity exceeded (p={:<4.1f} %)'.format(pct_above_threshold)
-
+        
     width = float(_threshold)/n_zero_to_threshold
     bins = np.arange(0, np.max(yvals), step=width)
     hist_values, bin_edges = np.histogram(yvals, bins=bins, density=True)
     width = bin_edges[1] - bin_edges[0]
     ax_big.bar(bin_edges[:-1][:n_zero_to_threshold], hist_values[:n_zero_to_threshold],
-               width=width, align='edge', label='Capacity OK')
+               width=width, align='edge', label='Capacity OK (p={:<4.1f} %)'.format(100 - pct_above_threshold))
 
-    if threshold is not None:
+    if threshold is not None and pct_above_threshold > 0:
         ax_big.bar(bin_edges[:-1][n_zero_to_threshold:], hist_values[n_zero_to_threshold:],
-                color='tomato', width=width, align='edge', label=label)
+                   color='tomato', width=width, align='edge', label=label)
 
     ax_big.axvline(y_p50, color='black', linestyle='-',
                    label='Median: {:<4.0f}'.format(y_p50))
@@ -203,13 +203,13 @@ def ua_plot(xvals_for_parname, yvals, parobjs, yname,
     
     ax_big.set_xlabel(yname, fontsize=font_size)
     ax_big.set_ylabel('Density', fontsize=font_size)
-    ax_big.legend(fontsize=font_size)
+    ax_big.legend()
     ax_big.tick_params(axis='x', labelsize=font_size)
     ax_big.tick_params(axis='y', labelsize=font_size)
     plt.show()
 
 
-def ua_timeseries(times, values, ylabel=''):
+def ua_timeseries(times, values, values_nom, ylabel=''):
 
     # This dictionary defines the colormap
     cdict = {'red':  ((0.0, 0.0, 0.0),   # no red at 0
@@ -229,6 +229,7 @@ def ua_timeseries(times, values, ylabel=''):
 
     font_size = 16
     fig, ax = plt.subplots(figsize=(15, 8))
+    nom_max = max(values_nom)
     avg = np.average(values, axis=1)
     avg_max = max(avg)
     pvals = [0, 20, 40, 60, 80, 95]
@@ -250,6 +251,9 @@ def ua_timeseries(times, values, ylabel=''):
             label='Median (max={:5.1e})'.format(p50_max), zorder=10000)
     ax.plot(times, avg, color="black", linestyle=':', alpha=1, linewidth=2,
             label='Average (max={:5.1e})'.format(avg_max), zorder=10000)
+    ax.plot(times, values_nom, color="black", linestyle='--', alpha=1, linewidth=2,
+            label='Nominal (max={:5.1e})'.format(nom_max), zorder=10000)
+
     ax.legend(fontsize=font_size)
     ylim_max = np.max(percentiles[-1])
     ax.set_xlim(0, ax.get_xlim()[1])
