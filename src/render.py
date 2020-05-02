@@ -192,7 +192,7 @@ def ua_plot(xvals_for_parname, yvals, parobjs, yname,
     ax_big.bar(bin_edges[:-1][:n_zero_to_threshold], hist_values[:n_zero_to_threshold],
                width=width, align='edge', label='Capacity OK (p={:<4.1f} %)'.format(100 - pct_above_threshold))
 
-    if threshold is not None and pct_above_threshold > 0:
+    if threshold is not None and n_zero_to_threshold < len(bin_edges[:-1]):
         ax_big.bar(bin_edges[:-1][n_zero_to_threshold:], hist_values[n_zero_to_threshold:],
                    color='tomato', width=width, align='edge', label=label)
 
@@ -203,7 +203,7 @@ def ua_plot(xvals_for_parname, yvals, parobjs, yname,
     
     ax_big.set_xlabel(yname, fontsize=font_size)
     ax_big.set_ylabel('Density', fontsize=font_size)
-    ax_big.legend()
+    ax_big.legend(fontsize=font_size)
     ax_big.tick_params(axis='x', labelsize=font_size)
     ax_big.tick_params(axis='y', labelsize=font_size)
     plt.show()
