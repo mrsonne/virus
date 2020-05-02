@@ -290,3 +290,38 @@ def ua_timeseries_boxes(times, values, ylabel=''):
     ax.tick_params(axis='x', labelsize=font_size)
     ax.tick_params(axis='y', labelsize=font_size)
     plt.show()
+
+
+def ua_timeseries_modes(times, values, ylabel=''):
+    font_size = 16
+    fig, ax = plt.subplots(figsize=(15, 8))
+    ntimes = values.shape[0]
+    nsim = values.shape[1]
+    modes = [max(np.histogram(vals)[0]) for vals in values]
+    plt.plot(times, modes)
+    ax.set_ylim((0, max(values.flatten())))
+    ax.set_xlabel('Time (day)', fontsize=font_size)
+    ax.set_ylabel(ylabel, fontsize=font_size)
+    ax.tick_params(axis='x', labelsize=font_size)
+    ax.tick_params(axis='y', labelsize=font_size)
+    plt.show()
+
+
+def ua_timeseries_hist(times, values, time_vals=None, ylabel=''):
+    font_size = 16
+    if time_vals is None:
+        step = (max(times) - min(times))/6 # five steps
+        _time_vals = np.arange(min(times) + step, max(times), step)
+    else:
+        _time_vals = time_vals
+    fig, ax = plt.subplots(figsize=(15, 8))
+    time_idx = np.searchsorted(times, _time_vals)
+    ax.hist(values[time_idx, :].T, bins=25, density=True,
+            label=['Day {:.0f}'.format(tval) for tval in _time_vals])
+    ax.legend(fontsize=font_size)
+
+    ax.set_xlabel(ylabel, fontsize=font_size)
+    ax.set_ylabel("Density", fontsize=font_size)
+    ax.tick_params(axis='x', labelsize=font_size)
+    ax.tick_params(axis='y', labelsize=font_size)
+    plt.show()
