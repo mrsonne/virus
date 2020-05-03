@@ -208,6 +208,13 @@ def ua_plot(xvals_for_parname, yvals, parobjs, yname,
     ax_big.tick_params(axis='y', labelsize=font_size)
     plt.show()
 
+def rsquare(data_values, model_values):
+    ss_tot = np.sum((data_values - np.mean(data_values))**2)
+    ss_res = np.sum((data_values - model_values[:,None])**2)
+    return ss_res/ss_tot 
+
+
+
 def add_curves(ax, times, values, values_nom):
     nom_max = max(values_nom)
     avg = np.average(values, axis=1)
@@ -215,12 +222,15 @@ def add_curves(ax, times, values, values_nom):
     p50 = np.percentile(values, 50, axis=1)
     p50_max = max(p50)
 
+    rsq_p50 = rsquare(values, p50)
+    rsq_avg = rsquare(values, avg)
+    rsq_nom = rsquare(values, values_nom)
     ax.plot(times, p50, color="black", alpha=1, linewidth=2,
-            label='Median (max={:5.1e})'.format(p50_max), zorder=10000)
+            label='Median (max={:5.1e}, R²={:4.2f})'.format(p50_max, rsq_p50), zorder=10000)
     ax.plot(times, avg, color="black", linestyle=':', alpha=1, linewidth=2,
-            label='Average (max={:5.1e})'.format(avg_max), zorder=10000)
+            label='Average (max={:5.1e}, R²={:4.2f})'.format(avg_max, rsq_avg), zorder=10000)
     ax.plot(times, values_nom, color="black", linestyle='--', alpha=1, linewidth=2,
-            label='Nominal (max={:5.1e})'.format(nom_max), zorder=10000)
+            label='Nominal (max={:5.1e}, R²={:4.2f})'.format(nom_max, rsq_nom), zorder=10000)
 
 
 
