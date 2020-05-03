@@ -208,6 +208,21 @@ def ua_plot(xvals_for_parname, yvals, parobjs, yname,
     ax_big.tick_params(axis='y', labelsize=font_size)
     plt.show()
 
+def add_curves(ax, times, values, values_nom):
+    nom_max = max(values_nom)
+    avg = np.average(values, axis=1)
+    avg_max = max(avg)
+    p50 = np.percentile(values, 50, axis=1)
+    p50_max = max(p50)
+
+    ax.plot(times, p50, color="black", alpha=1, linewidth=2,
+            label='Median (max={:5.1e})'.format(p50_max), zorder=10000)
+    ax.plot(times, avg, color="black", linestyle=':', alpha=1, linewidth=2,
+            label='Average (max={:5.1e})'.format(avg_max), zorder=10000)
+    ax.plot(times, values_nom, color="black", linestyle='--', alpha=1, linewidth=2,
+            label='Nominal (max={:5.1e})'.format(nom_max), zorder=10000)
+
+
 
 def ua_timeseries(times, values, values_nom, ylabel=''):
 
@@ -229,13 +244,10 @@ def ua_timeseries(times, values, values_nom, ylabel=''):
 
     font_size = 16
     fig, ax = plt.subplots(figsize=(15, 8))
-    nom_max = max(values_nom)
-    avg = np.average(values, axis=1)
-    avg_max = max(avg)
+
     pvals = [0, 20, 40, 60, 80, 95]
     percentiles = np.percentile(values, pvals, axis=1)
-    p50 = np.percentile(values, 50, axis=1)
-    p50_max = max(p50)
+
     for lower, upper, p_low, p_up in zip(percentiles[:-1], percentiles[1:], pvals[:-1], pvals[1:]):
         p_mean = 0.5*(p_low + p_up)
         ax.fill_between(times, lower, upper, color=cmap(p_mean/100),
@@ -247,12 +259,7 @@ def ua_timeseries(times, values, values_nom, ylabel=''):
     # make a single label
     ax.plot(times, values[:, 0], color="gray", alpha=0.2, linewidth=1, label='Samples') 
 
-    ax.plot(times, p50, color="black", alpha=1, linewidth=2,
-            label='Median (max={:5.1e})'.format(p50_max), zorder=10000)
-    ax.plot(times, avg, color="black", linestyle=':', alpha=1, linewidth=2,
-            label='Average (max={:5.1e})'.format(avg_max), zorder=10000)
-    ax.plot(times, values_nom, color="black", linestyle='--', alpha=1, linewidth=2,
-            label='Nominal (max={:5.1e})'.format(nom_max), zorder=10000)
+    add_curves(ax, times, values, values_nom)
 
     ax.legend(fontsize=font_size)
     ylim_max = np.max(percentiles[-1])
@@ -273,17 +280,7 @@ def ua_timeseries_density(times, values, values_nom, ylabel=''):
     _times = np.repeat(times, nsim)
     ax.hexbin(_times, _values, cmap='Greys', bins='log') # use log scale since at small and large time the solution is quite well-defined
 
-    nom_max = max(values_nom)
-    avg = np.average(values, axis=1)
-    avg_max = max(avg)
-    p50 = np.percentile(values, 50, axis=1)
-    p50_max = max(p50)
-    ax.plot(times, p50, color="black", alpha=1, linewidth=2,
-            label='Median (max={:5.1e})'.format(p50_max), zorder=10000)
-    ax.plot(times, avg, color="black", linestyle=':', alpha=1, linewidth=2,
-            label='Average (max={:5.1e})'.format(avg_max), zorder=10000)
-    ax.plot(times, values_nom, color="black", linestyle='--', alpha=1, linewidth=2,
-            label='Nominal (max={:5.1e})'.format(nom_max), zorder=10000)
+    add_curves(ax, times, values, values_nom)
 
     ax.set_ylim((0, max(_values)))
     ax.set_xlabel('Time (day)', fontsize=font_size)
