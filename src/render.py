@@ -209,9 +209,10 @@ def ua_plot(xvals_for_parname, yvals, parobjs, yname,
     plt.show()
 
 def rsquare(data_values, model_values):
-    ss_tot = np.sum((data_values - np.mean(data_values))**2)
-    ss_res = np.sum((data_values - model_values[:,None])**2)
-    return ss_res/ss_tot 
+    mean = np.mean(data_values)
+    ss_tot = np.sum((data_values - mean)**2)
+    ss_res = np.sum((data_values - model_values[:, None])**2)
+    return 1 - ss_res/ss_tot 
 
 
 
