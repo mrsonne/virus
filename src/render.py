@@ -333,7 +333,7 @@ def ua_timeseries_modes(times, values, ylabel=''):
     plt.show()
 
 
-def ua_timeseries_hist(times, values, time_vals=None, ylabel=''):
+def ua_timeseries_slice(times, values, time_vals=None, ylabel=''):
     font_size = 16
     if time_vals is None:
         step = (max(times) - min(times))/6 # five steps
