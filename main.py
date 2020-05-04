@@ -78,7 +78,7 @@ par3 = dict(axlabel='$E$ (day\u207B\u00B9)',
 
 response = dict(name='ventilators_required',
                 transform=run.get_max,
-                title="Ventilator required",
+                title="Ventilators required",
                )
 
 # response = dict(name='infected',
@@ -91,15 +91,15 @@ pars = par1, par2, par3
  response_tseries,
  response_ts_nom) = run.ua('covid19', 'denmark', 30,
                             pars, response,
-                            nsamples=1000, tspan=[0, 400])
+                            nsamples=200, tspan=[0, 400])
 # times, response_tseries = run.ua('covid19', 'denmark', [50, 15, 30], 
 #                                   pars, response,
 #                                   nsamples=100, tspan=[0, 40, 54, 130])
-# render.ua_timeseries(times, response_tseries.T, response_ts_nom, ylabel=response['title'])
-render.ua_timeseries_density(times, response_tseries.T, response_ts_nom, ylabel=response['title'])
+render.ua_timeseries(times, response_tseries.T, response_ts_nom, ylabel=response['title'])
+# render.ua_timeseries_density(times, response_tseries.T, response_ts_nom, ylabel=response['title'])
 # render.ua_timeseries_boxes(times, response_tseries.T, ylabel=response['title'])
 # render.ua_timeseries_modes(times, response_tseries.T, ylabel=response['title'])
-# render.ua_timeseries_hist(times, response_tseries.T, ylabel=response['title'])
+render.ua_timeseries_slice(times, response_tseries.T, time_vals=[40, 60, 80, 100], ylabel=response['title'])
 
 # p_t = 0.0015612*2
 # encounters_per_day = 50
